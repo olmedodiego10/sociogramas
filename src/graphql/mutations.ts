@@ -12,3 +12,13 @@ export const LOGIN_MUTATION = gql`
     }
   }
 `;
+
+export const CREATE_CLASE_MUTATION = gql`
+  mutation CreateClase($object: clase_insert_input!) {
+    insert_clase_one(object: $object) {
+      id
+      identificador
+      usuario_id
+    }
+  }
+`;

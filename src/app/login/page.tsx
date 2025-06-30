@@ -7,9 +7,9 @@ import { useRouter } from "next/navigation";
 
 export default function Login() {
   const router = useRouter();
-  const [datosLogin, setDatosLogin] = useState({ usuario: '', password: '' });
+  const [datosLogin, setDatosLogin] = useState({ email: '', password: '' });
   const [mensaje, setMensaje] = useState<string | null>(null);
-  const idUsuario = useId();
+  const idEmail = useId();
   const idPassword = useId();
 
   // Apollo Query
@@ -25,7 +25,7 @@ export default function Login() {
   }, [router]);
 
 interface DatosLogin {
-    usuario: string;
+    email: string;
     password: string;
 }
 
@@ -41,7 +41,7 @@ const manejarEnvio = async (e: ManejarEnvioEvent): Promise<void> => {
     e.preventDefault();
     setMensaje(null);
     try {
-        await getUsuario({ variables: { usuario: datosLogin.usuario } });
+        await getUsuario({ variables: { usuario: datosLogin.email } });
     } catch (err) {
         setMensaje('Error al conectar con el servidor.');
     }
@@ -50,10 +50,11 @@ const manejarEnvio = async (e: ManejarEnvioEvent): Promise<void> => {
   useEffect(() => {
     if (data && data.usuario && data.usuario.length > 0) {
       const usuarioDb = data.usuario[0];
+      console.log('Usuario recibido en login:', usuarioDb);
       if (usuarioDb.password === datosLogin.password) {
         localStorage.setItem('usuario', JSON.stringify(usuarioDb));
         setMensaje('Sesión iniciada con éxito. ¡Bienvenido! 😎');
-        setDatosLogin({ usuario: '', password: '' });
+        setDatosLogin({ email: '', password: '' });
         setTimeout(() => {
           router.push("/panel");
         }, 1000);
@@ -72,30 +73,32 @@ const manejarEnvio = async (e: ManejarEnvioEvent): Promise<void> => {
     <div>
       <form onSubmit={manejarEnvio} className="login">
         <h2>Iniciar sesión</h2>
-        <label htmlFor={idUsuario}>Usuario</label>
+        <label htmlFor={idEmail}>Email</label>
         <input
-          name="usuario"
+          name="email"
           type="text"
-          id={idUsuario}
-          placeholder="Usuario"
-          value={datosLogin.usuario}
+          id="email-input"
+          placeholder="Email"
+          value={datosLogin.email}
           onChange={manejarCambioEntrada}
           required
+          autoComplete="email"
         />
-        <label htmlFor={idPassword}>Contraseña</label>
+        <label htmlFor="password-input">Contraseña</label>
         <input
           name="password"
           type="password"
-          id={idPassword}
+          id="password-input"
           placeholder="Contraseña"
           value={datosLogin.password}
           onChange={manejarCambioEntrada}
           required
+          autoComplete="current-password"
         />
         <button
           type="submit"
-          className={`btn btn-primary${(!datosLogin.usuario || !datosLogin.password || loading) ? " disabled" : ""}`}
-          disabled={!datosLogin.usuario || !datosLogin.password || loading}
+          className={`btn btn-primary${(!datosLogin.email || !datosLogin.password || loading) ? " disabled" : ""}`}
+          disabled={!datosLogin.email || !datosLogin.password || loading}
         >
           {loading ? 'Ingresando...' : 'Ingresar'}
         </button>
