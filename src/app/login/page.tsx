@@ -1,9 +1,12 @@
 "use client";
-import React, { useEffect, useId, useState, useCallback } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import { useLazyQuery } from '@apollo/client';
 import { GET_USUARIO_QUERY } from '@/graphql/queries';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
+  const router = useRouter();
   const [datosLogin, setDatosLogin] = useState({ usuario: '', password: '' });
   const [mensaje, setMensaje] = useState<string | null>(null);
   const idUsuario = useId();
@@ -15,8 +18,11 @@ export default function Login() {
   useEffect(() => {
     if (localStorage.getItem('usuario') !== null) {
       setMensaje('Ya has iniciado sesión');
+      setTimeout(() => {
+        router.push("/panel");
+      }, 1000);
     }
-  }, []);
+  }, [router]);
 
 interface DatosLogin {
     usuario: string;
@@ -45,9 +51,12 @@ const manejarEnvio = async (e: ManejarEnvioEvent): Promise<void> => {
     if (data && data.usuario && data.usuario.length > 0) {
       const usuarioDb = data.usuario[0];
       if (usuarioDb.password === datosLogin.password) {
-        //localStorage.setItem('usuario', JSON.stringify(usuarioDb));
+        localStorage.setItem('usuario', JSON.stringify(usuarioDb));
         setMensaje('Sesión iniciada con éxito. ¡Bienvenido! 😎');
         setDatosLogin({ usuario: '', password: '' });
+        setTimeout(() => {
+          router.push("/panel");
+        }, 1000);
       } else {
         setMensaje('Contraseña incorrecta.');
       }
@@ -57,7 +66,7 @@ const manejarEnvio = async (e: ManejarEnvioEvent): Promise<void> => {
     if (error) {
       setMensaje('Error al consultar el usuario.');
     }
-  }, [data, error]);
+  }, [data, error, router]);
 
   return (
     <div>
@@ -90,6 +99,9 @@ const manejarEnvio = async (e: ManejarEnvioEvent): Promise<void> => {
         >
           {loading ? 'Ingresando...' : 'Ingresar'}
         </button>
+        <Link href="/" className="login-link" style={{ display: 'block', marginTop: 16 }}>
+          Regresar
+        </Link>
         {mensaje && <p style={{ marginTop: 16, color: mensaje.includes('éxito') || mensaje.includes('Bienvenido') ? 'green' : 'red' }}>{mensaje}</p>}
       </form>
     </div>

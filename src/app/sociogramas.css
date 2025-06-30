@@ -41,7 +41,7 @@ body {
 
 .main-content {
   padding: 15px;
-  background: transparent; /* Fondo totalmente transparente */
+  background: white; /* Fondo totalmente transparente */
   border-bottom-left-radius: 15px;
   border-bottom-right-radius: 15px;
   margin-top: 0;
@@ -129,11 +129,15 @@ body {
   padding: 30px;
   text-align: center;
   margin-bottom: 30px;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s, background 0.3s;
   max-width: 400px;
   margin-left: auto;
   margin-right: auto;
   box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+}
+
+.login:hover {
+  border-color: #4CAF50;
 }
 
 .login h2 {
@@ -197,4 +201,61 @@ body {
   background: #bdbdbd;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+.login-link {
+  color: #4CAF50;
+  text-decoration: underline;
+  font-size: 1em;
+  font-weight: 400;
+  text-align: center;
+  display: block;
+  margin-top: 16px;
+  transition: color 0.2s;
+}
+
+.login-link:hover {
+  color: #388e3c;
+}
+
+.panel-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 32px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+
+.panel-title {
+  color: #4CAF50;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.panel-user-bar {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.panel-user-email {
+  color: #333;
+  font-weight: 500;
+}
+
+.panel-logout-btn {
+  margin-left: 24px;
+  background: #b71c1c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.panel-description {
+  text-align: center;
+  color: #333;
+  margin-bottom: 32px;
 }
