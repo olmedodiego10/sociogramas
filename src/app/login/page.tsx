@@ -1,5 +1,7 @@
 "use client";
 import React, { useEffect, useId, useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { useLazyQuery } from '@apollo/client';
 import { GET_USUARIO_QUERY } from '@/graphql/queries';
 import Link from "next/link";
@@ -8,7 +10,7 @@ import { useRouter } from "next/navigation";
 export default function Login() {
   const router = useRouter();
   const [datosLogin, setDatosLogin] = useState({ email: '', password: '' });
-  const [mensaje, setMensaje] = useState<string | null>(null);
+  // Eliminamos mensaje, usaremos toast
   const idEmail = useId();
   const idPassword = useId();
 
@@ -17,7 +19,7 @@ export default function Login() {
 
   useEffect(() => {
     if (localStorage.getItem('usuario') !== null) {
-      setMensaje('Ya has iniciado sesión');
+      toast.info('Ya has iniciado sesión');
       setTimeout(() => {
         router.push("/panel");
       }, 1000);
@@ -39,11 +41,11 @@ interface ManejarEnvioEvent extends React.FormEvent<HTMLFormElement> {}
 
 const manejarEnvio = async (e: ManejarEnvioEvent): Promise<void> => {
     e.preventDefault();
-    setMensaje(null);
+    // No necesitamos setMensaje
     try {
         await getUsuario({ variables: { usuario: datosLogin.email } });
     } catch (err) {
-        setMensaje('Error al conectar con el servidor.');
+        toast.error('Error al conectar con el servidor.');
     }
 };
 
@@ -53,19 +55,19 @@ const manejarEnvio = async (e: ManejarEnvioEvent): Promise<void> => {
       console.log('Usuario recibido en login:', usuarioDb);
       if (usuarioDb.password === datosLogin.password) {
         localStorage.setItem('usuario', JSON.stringify(usuarioDb));
-        setMensaje('Sesión iniciada con éxito. ¡Bienvenido! 😎');
+        toast.success('Sesión iniciada con éxito. ¡Bienvenido! 😎');
         setDatosLogin({ email: '', password: '' });
         setTimeout(() => {
           router.push("/panel");
         }, 1000);
       } else {
-        setMensaje('Contraseña incorrecta.');
+        toast.error('Contraseña incorrecta.');
       }
     } else if (data && data.usuario && data.usuario.length === 0) {
-      setMensaje('Usuario no encontrado.');
+      toast.error('Usuario no encontrado.');
     }
     if (error) {
-      setMensaje('Error al consultar el usuario.');
+      toast.error('Error al consultar el usuario.');
     }
   }, [data, error, router]);
 
@@ -105,7 +107,8 @@ const manejarEnvio = async (e: ManejarEnvioEvent): Promise<void> => {
         <Link href="/" className="login-link" style={{ display: 'block', marginTop: 16 }}>
           Regresar
         </Link>
-        {mensaje && <p style={{ marginTop: 16, color: mensaje.includes('éxito') || mensaje.includes('Bienvenido') ? 'green' : 'red' }}>{mensaje}</p>}
+        {/* ToastContainer para mostrar los mensajes */}
+        <ToastContainer position="bottom-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
       </form>
     </div>
   );

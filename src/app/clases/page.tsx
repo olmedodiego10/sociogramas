@@ -1,5 +1,7 @@
 "use client";
 import React, { useState } from "react";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { useMutation, useQuery } from "@apollo/client";
 import { CREATE_ESTUDIANTE_MUTATION } from "@/graphql/mutations";
 import { GET_ESTUDIANTES_QUERY } from "@/graphql/queries";
@@ -24,8 +26,9 @@ export default function ClasesPage() {
             await createEstudiante({ variables: { object: { nombre, clase_id: claseId } } });
             setNombre("");
             refetchEstudiantes();
+            toast.success('Estudiante creado con éxito');
         } catch (err) {
-            alert("Error al crear el estudiante");
+            toast.error("Error al crear el estudiante");
         }
     };
 
@@ -102,6 +105,7 @@ export default function ClasesPage() {
                     Regresar
                 </Link>
             </div>
-        </div>
+        <ToastContainer position="bottom-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
+    </div>
     );
 }

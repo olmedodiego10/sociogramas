@@ -1,5 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@apollo/client";
 import { CREATE_CLASE_MUTATION } from "@/graphql/mutations";
@@ -44,8 +46,9 @@ export default function Panel() {
       setIdentificador("");
       setShowCrearClase(false);
       refetchClases();
+      toast.success('Clase creada con éxito');
     } catch (err) {
-      alert("Error al crear la clase");
+      toast.error("Error al crear la clase");
     }
   };
 
@@ -107,7 +110,7 @@ export default function Panel() {
           </li>
         ))}
       </ul>
-      {/* Aquí puedes agregar botones, tablas o componentes según lo que necesites mostrar en el panel */}
+      <ToastContainer position="bottom-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
     </div>
   );
 }
