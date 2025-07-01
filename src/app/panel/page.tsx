@@ -63,7 +63,7 @@ export default function Panel() {
         </div>
       )}
       <p className="panel-description">
-        Aquí podrás gestionar los grupos, ver resultados y administrar usuarios.
+        Descripción pendiente.
       </p>
       <button
         className="panel-btn"
@@ -102,7 +102,7 @@ export default function Panel() {
               href={{ pathname: '/clases', query: { id: cl.id, identificador: cl.identificador } }}
               className="panel-btn panel-btn-green"
             >
-              Gestionar clase
+              Gestionar estudiantes
             </Link>
           </li>
         ))}

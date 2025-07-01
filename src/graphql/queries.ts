@@ -30,6 +30,7 @@ export const GET_ESTUDIANTES_QUERY = gql`
       created_at
       clase_id
       grupo_id
+      cuestionario_id
     }
   }
 `;

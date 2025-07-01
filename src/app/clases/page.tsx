@@ -30,7 +30,24 @@ export default function ClasesPage() {
     };
 
     return (
-        <div className="panel-container">
+        <div className="panel-container" style={{ position: 'relative' }}>
+            <Link
+                href="/panel"
+                className="login-link"
+                style={{
+                    position: 'absolute',
+                    top: 18,
+                    right: 24,
+                    fontSize: '1.5em',
+                    textDecoration: 'none',
+                    color: '#b71c1c',
+                    zIndex: 2,
+                    fontWeight: 700
+                }}
+                title="Cerrar y volver al panel"
+            >
+                ❌
+            </Link>
             <form onSubmit={handleSubmit} className="panel-form">
                 <h2 className="panel-form-title">Clase {identificador}</h2>
                 <input
@@ -49,10 +66,34 @@ export default function ClasesPage() {
                     Agregar estudiante
                 </button>
             </form>
+            <p>
+                Pendiente funcionalidad de importar clase entera o importar un alumno existente mediante código de estudiante.
+            </p>
             <ul className="panel-list">
                 {estudiantesData?.estudiante?.map((est: any) => (
-                    <li key={est.id} className="panel-list-item">
-                        <strong>{est.nombre}</strong>
+                    <li key={est.id} className="panel-list-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                            <strong>🎒{est.nombre}</strong>
+                            <br />
+                            <strong>Código de estudiante:</strong>
+                            <button
+                                type="button"
+                                className="panel-btn"
+                                style={{ marginLeft: 8, padding: '2px 10px', fontSize: '0.95em', verticalAlign: 'middle' }}
+                                onClick={() => navigator.clipboard.writeText(est.codigo_estudiante)}
+                                title="Copiar código"
+                            >
+                                📋
+                            </button>
+                            <br />
+                            <span style={{ color: '#666', fontSize: '0.98em', wordBreak: 'break-all', verticalAlign: 'middle' }}>{est.codigo_estudiante}</span>
+                        </div>
+                        <span style={{ marginRight: 16, fontSize: '0.97em', color: est.cuestionario_id ? '#388e3c' : '#b71c1c' }}>
+                            {est.cuestionario_id ? 'Cuestionario asignado' : 'Sin cuestionario asignado'}
+                        </span>
+                        <button className="panel-btn" type="button" style={{ minWidth: 60 }}>
+                            Ver
+                        </button>
                     </li>
                 ))}
             </ul>
