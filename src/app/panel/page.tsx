@@ -96,17 +96,42 @@ export default function Panel() {
         </form>
       )}
       <hr className="panel-divider" />
-      <h3 className="panel-subtitle">Clases creadas</h3>
+      <h2 className="panel-form-title">Clases creadas</h2>
       <ul className="panel-list">
         {clasesData?.clase?.map((cl: any) => (
           <li key={cl.id} className="panel-list-item">
-            <span><strong>{cl.identificador}</strong></span>
-            <Link
-              href={{ pathname: '/clases', query: { id: cl.id, identificador: cl.identificador } }}
-              className="panel-btn panel-btn-green"
-            >
-              Gestionar estudiantes
-            </Link>
+            <div style={{ width: '100%' }}>
+              <div style={{ fontWeight: 600, fontSize: '1.15em', marginBottom: 8 }}>{cl.identificador}</div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <Link
+                  href={{ pathname: '/clases', query: { id: cl.id, identificador: cl.identificador } }}
+                  className="panel-btn panel-btn-green"
+                >
+                  Gestión estudiantes
+                </Link>
+                <button
+                  type="button"
+                  className="panel-btn panel-btn-gray"
+                  // TODO: onClick para iniciar cuestionario
+                >
+                  Iniciar cuestionario
+                </button>
+                <button
+                  type="button"
+                  className="panel-btn panel-btn-orange"
+                  // TODO: onClick para grupos
+                >
+                  Grupos
+                </button>
+                <button
+                  type="button"
+                  className="panel-btn-blue"
+                  // TODO: onClick para dashboard
+                >
+                  Dashboard
+                </button>
+              </div>
+            </div>
           </li>
         ))}
       </ul>
