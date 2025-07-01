@@ -1,3 +1,22 @@
+/* Nuevo azul claro para botones de acción secundarios */
+.panel-btn-blue {
+  background: #42a5f5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  text-decoration: none;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.panel-btn-blue:hover {
+  background: #1976d2;
+  box-shadow: 0 5px 15px rgba(25, 118, 210, 0.15);
+}
 /* Custom styles for sociogramas layout */
 * {
   margin: 0;
@@ -41,7 +60,7 @@ body {
 
 .main-content {
   padding: 15px;
-  background: white; /* Fondo totalmente transparente */
+  background: white;
   border-bottom-left-radius: 15px;
   border-bottom-right-radius: 15px;
   margin-top: 0;
@@ -243,19 +262,149 @@ body {
   font-weight: 500;
 }
 
+
 .panel-logout-btn {
   margin-left: 24px;
-  background: #b71c1c;
+  background: #e53935;
   color: #fff;
   border: none;
   border-radius: 8px;
   padding: 8px 20px;
   cursor: pointer;
   font-weight: 500;
+  transition: background 0.2s;
+}
+.panel-logout-btn:hover {
+  background: #b71c1c;
 }
 
 .panel-description {
   text-align: center;
   color: #333;
   margin-bottom: 32px;
+}
+
+.login-estudiantes {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.input-estudiante {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-right: 12px;
+  width: 100%;
+  max-width: 260px;
+  margin-bottom: 0;
+}
+
+.btn-agregar-estudiante {
+  background: #388e3c;
+  margin-left: 0;
+}
+
+.lista-estudiantes {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.item-estudiante {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+
+/* Panel form standardization */
+.panel-form {
+  background: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 10px;
+  padding: 30px;
+  text-align: center;
+  margin-bottom: 30px;
+  margin-top: 24px;
+  transition: border-color 0.3s, background 0.3s;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+}
+.panel-form:hover {
+  border-color: #4CAF50;
+}
+.panel-form-title {
+  font-size: 1.5em;
+  margin-bottom: 18px;
+  color: white;
+  background: linear-gradient(45deg, #4CAF50, #45a049);
+  border-radius: 8px;
+  padding: 12px 0;
+  margin-top: 0;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(76,175,80,0.08);
+  letter-spacing: 1px;
+  text-align: center;
+}
+.panel-input {
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 1em;
+  transition: border-color 0.2s;
+}
+.panel-input:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+
+.panel-btn {
+  background: #45a049;
+  color: white;
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  border: none;
+  font-size: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  transition: background 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  display: inline-block;
+}
+.panel-btn:hover:not(.disabled) {
+  background: #388e3c;
+  box-shadow: 0 5px 15px rgba(56, 142, 60, 0.15);
+}
+.panel-btn.disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+
+.panel-divider {
+  margin: 32px 0;
+}
+.panel-subtitle {
+  text-align: center;
+  margin-bottom: 12px;
+}
+.panel-list {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+.panel-list-item {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }

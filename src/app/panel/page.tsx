@@ -5,6 +5,7 @@ import { useMutation, useQuery } from "@apollo/client";
 import { CREATE_CLASE_MUTATION } from "@/graphql/mutations";
 import { GET_CLASES_QUERY } from "@/graphql/queries";
 import '../sociogramas.css';
+import Link from "next/link";
 export default function Panel() {
   const router = useRouter();
   const [usuario, setUsuario] = useState<{ id: string; email: string } | null>(null);
@@ -50,7 +51,7 @@ export default function Panel() {
 
   return (
       <div className="panel-container">
-      <h2 className="panel-title">Panel de gestión de sociogramas</h2>
+      <h2 className="panel-form-title">Panel de gestión de sociogramas</h2>
       {usuario && (
         <div className="panel-user-bar">
           <span className="panel-user-email">
@@ -65,32 +66,44 @@ export default function Panel() {
         Aquí podrás gestionar los grupos, ver resultados y administrar usuarios.
       </p>
       <button
-        className="panel-logout-btn"
-        style={{ background: '#1976d2', margin: '24px auto 0', display: 'block' }}
+        className="panel-btn"
+        style={{ margin: '24px auto 0', display: 'block' }}
         onClick={() => setShowCrearClase(v => !v)}
       >
         Crear clase
       </button>
       {showCrearClase && (
-        <form onSubmit={handleSubmit} style={{ textAlign: 'center', marginTop: 24 }}>
+        <form onSubmit={handleSubmit} className="panel-form">
+          <h2 className="panel-form-title">Crear clase</h2>
           <input
             type="text"
+            className="panel-input"
+            id="identificador"
+            name="identificador"
             placeholder="Nombre de la clase"
             value={identificador}
             onChange={e => setIdentificador(e.target.value)}
-            style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc", marginRight: 12 }}
+            required
+            autoComplete="off"
+            aria-label="Nombre de la clase"
           />
-          <button type="submit" className="panel-logout-btn" style={{ background: '#388e3c' }}>
+          <button type="submit" className="panel-btn panel-btn-green">
             Guardar
           </button>
         </form>
       )}
-      <hr style={{ margin: '32px 0' }} />
-      <h3 style={{ textAlign: 'center', marginBottom: 12 }}>Clases creadas</h3>
-      <ul style={{ maxWidth: 400, margin: '0 auto', padding: 0, listStyle: 'none' }}>
+      <hr className="panel-divider" />
+      <h3 className="panel-subtitle">Clases creadas</h3>
+      <ul className="panel-list">
         {clasesData?.clase?.map((cl: any) => (
-          <li key={cl.id} style={{ padding: 8, borderBottom: '1px solid #eee' }}>
-            <strong>{cl.identificador}</strong>
+          <li key={cl.id} className="panel-list-item">
+            <span><strong>{cl.identificador}</strong></span>
+            <Link
+              href={{ pathname: '/clases', query: { id: cl.id, identificador: cl.identificador } }}
+              className="panel-btn panel-btn-green"
+            >
+              Gestionar clase
+            </Link>
           </li>
         ))}
       </ul>

@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./sociogramas.css";
 import { Providers } from "@/Providers";
-import { HeaderSociogramas } from "./HeaderSociogramas";
+import Image from "next/image";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +29,19 @@ export default function RootLayout({
     <html lang="es">
       <body className="">
         <div className="container">
-          <HeaderSociogramas />
+          <div className="header">
+            <h1>
+              <Image
+                src="/icon.png"
+                alt="Icono de sistema"
+                width={40}
+                height={40}
+                style={{ verticalAlign: "middle", marginRight: "0.1em", display: "inline-block" }}
+              />
+              Sistema de Sociogramas
+            </h1>
+            <p>Herramienta inteligente para la formación de grupos basada en afinidades</p>
+          </div>
           <main className="main-content">
             <Providers>
               {children}

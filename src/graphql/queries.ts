@@ -20,3 +20,16 @@ export const GET_CLASES_QUERY = gql`
     }
   }
 `;
+
+export const GET_ESTUDIANTES_QUERY = gql`
+  query GetEstudiantes($claseId: uuid) {
+    estudiante(where: {clase_id: {_eq: $claseId}}, order_by: {created_at: desc}) {
+      id
+      nombre
+      codigo_estudiante
+      created_at
+      clase_id
+      grupo_id
+    }
+  }
+`;
