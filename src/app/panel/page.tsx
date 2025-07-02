@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@apollo/client";
 import { CREATE_CLASE_MUTATION, CREATE_CUESTIONARIO_MUTATION, UPDATE_CUESTIONARIO_ESTADO_MUTATION } from "@/graphql/mutations";
