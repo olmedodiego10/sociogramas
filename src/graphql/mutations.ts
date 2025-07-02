@@ -1,3 +1,11 @@
+export const UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION = gql`
+  mutation UpdateEstudianteCuestionario($id: uuid!, $cuestionario_id: uuid) {
+    update_estudiante_by_pk(pk_columns: {id: $id}, _set: {cuestionario_id: $cuestionario_id}) {
+      id
+      cuestionario_id
+    }
+  }
+`;
 export const UPDATE_CUESTIONARIO_ESTADO_MUTATION = gql`
   mutation UpdateCuestionarioEstado($id: uuid!, $estado: estado_cuestionario_enum!) {
     update_cuestionario_by_pk(pk_columns: {id: $id}, _set: {estado: $estado}) {

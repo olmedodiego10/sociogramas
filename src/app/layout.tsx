@@ -5,7 +5,7 @@ import "./sociogramas.css";
 import { Providers } from "@/Providers";
 import Image from "next/image";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/ReactToastify.css";
+import "react-toastify/dist/ReactToastify.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

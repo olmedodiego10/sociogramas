@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from 'react-toastify';
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@apollo/client";
-import { CREATE_CLASE_MUTATION, CREATE_CUESTIONARIO_MUTATION, UPDATE_CUESTIONARIO_ESTADO_MUTATION } from "@/graphql/mutations";
+import { CREATE_CLASE_MUTATION, CREATE_CUESTIONARIO_MUTATION, UPDATE_CUESTIONARIO_ESTADO_MUTATION, UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION } from "@/graphql/mutations";
 import { GET_CLASES_QUERY, GET_CUESTIONARIOS_QUERY } from "@/graphql/queries";
 import '../sociogramas.css';
 import Link from "next/link";
@@ -17,6 +17,7 @@ function Panel() {
   const [createClase] = useMutation(CREATE_CLASE_MUTATION);
   const [createCuestionario] = useMutation(CREATE_CUESTIONARIO_MUTATION);
   const [updateCuestionarioEstado] = useMutation(UPDATE_CUESTIONARIO_ESTADO_MUTATION);
+  const [updateEstudianteCuestionario] = useMutation(UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION);
   const { data: clasesData, refetch: refetchClases, client } = useQuery(GET_CLASES_QUERY);
   const [cuestionariosPorClase, setCuestionariosPorClase] = useState<any>({});
 
@@ -166,7 +167,7 @@ function Panel() {
                     if (!cuestionariosPorClase[cl.id]) {
                       // Iniciar cuestionario
                       try {
-                        await createCuestionario({
+                        const { data: cuestionarioData } = await createCuestionario({
                           variables: {
                             object: {
                               clase_id: cl.id,
@@ -174,10 +175,33 @@ function Panel() {
                             },
                           },
                         });
-                        if (isMounted.current) toast.success('Cuestionario iniciado');
+                        const nuevoCuestionarioId = cuestionarioData?.insert_cuestionario_one?.id;
+                        if (nuevoCuestionarioId) {
+                          // Obtener estudiantes de la clase
+                          const { data: estudiantesData } = await client.query({
+                            query: require('@/graphql/queries').GET_ESTUDIANTES_QUERY,
+                            variables: { claseId: cl.id },
+                            fetchPolicy: 'network-only',
+                          });
+                          const estudiantes = estudiantesData?.estudiante || [];
+                          if (estudiantes.length === 0) {
+                            toast.info('No hay estudiantes en la clase');
+                          } else {
+                            // Actualizar cuestionario_id para cada estudiante
+                            await Promise.all(estudiantes.map((est: any) =>
+                              updateEstudianteCuestionario({
+                                variables: {
+                                  id: est.id,
+                                  cuestionario_id: nuevoCuestionarioId,
+                                },
+                              })
+                            ));
+                          }
+                        }
+                        toast.success('Cuestionario iniciado');
                         await refrescarCuestionariosClase(cl.id);
                       } catch (err) {
-                        if (isMounted.current) toast.error('Error al iniciar el cuestionario');
+                        toast.error('Error al iniciar el cuestionario');
                       }
                     } else {
                       // Cerrar cuestionario
@@ -188,11 +212,31 @@ function Panel() {
                             estado: 'CERRADA' as any,
                           },
                         });
-                        if (isMounted.current) toast.warn('Cuestionario cerrado');
+                        // Obtener estudiantes de la clase
+                        const { data: estudiantesData } = await client.query({
+                          query: require('@/graphql/queries').GET_ESTUDIANTES_QUERY,
+                          variables: { claseId: cl.id },
+                          fetchPolicy: 'network-only',
+                        });
+                        const estudiantes = estudiantesData?.estudiante || [];
+                        if (estudiantes.length > 0) {
+                          // Actualizar cuestionario_id a null para cada estudiante
+                          await Promise.all(estudiantes.map((est: any) =>
+                            updateEstudianteCuestionario({
+                              variables: {
+                                id: est.id,
+                                cuestionario_id: null,
+                              },
+                            })
+                          ));
+                        }
+                        if (isMounted.current) {
+                          toast.warn('Cuestionario cerrado');
+                        }
                         await refrescarCuestionariosClase(cl.id);
                       } catch (err) {
                         console.error('Error al cerrar el cuestionario:', err);
-                        if (isMounted.current) toast.error('Error al cerrar el cuestionario');
+                        toast.error('Error al cerrar el cuestionario');
                       }
                     }
                   }}
