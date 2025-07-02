@@ -34,3 +34,17 @@ export const GET_ESTUDIANTES_QUERY = gql`
     }
   }
 `;
+
+export const GET_CUESTIONARIOS_QUERY = gql`
+  query GetCuestionarios($claseId: uuid) {
+    cuestionario(where: {clase_id: {_eq: $claseId}}, order_by: {created_at: desc}) {
+      id
+      clase_id
+      estado
+      fecha_inicio
+      fecha_fin
+      created_at
+      updated_at
+    }
+  }
+`;

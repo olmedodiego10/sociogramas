@@ -4,17 +4,52 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@apollo/client";
-import { CREATE_CLASE_MUTATION } from "@/graphql/mutations";
-import { GET_CLASES_QUERY } from "@/graphql/queries";
+import { CREATE_CLASE_MUTATION, CREATE_CUESTIONARIO_MUTATION, UPDATE_CUESTIONARIO_ESTADO_MUTATION } from "@/graphql/mutations";
+import { GET_CLASES_QUERY, GET_CUESTIONARIOS_QUERY } from "@/graphql/queries";
 import '../sociogramas.css';
 import Link from "next/link";
-export default function Panel() {
+
+function Panel() {
+  const isMounted = React.useRef(true);
   const router = useRouter();
   const [usuario, setUsuario] = useState<{ id: string; email: string } | null>(null);
   const [showCrearClase, setShowCrearClase] = useState(false);
   const [identificador, setIdentificador] = useState("");
   const [createClase] = useMutation(CREATE_CLASE_MUTATION);
-  const { data: clasesData, refetch: refetchClases } = useQuery(GET_CLASES_QUERY);
+  const [createCuestionario] = useMutation(CREATE_CUESTIONARIO_MUTATION);
+  const [updateCuestionarioEstado] = useMutation(UPDATE_CUESTIONARIO_ESTADO_MUTATION);
+  const { data: clasesData, refetch: refetchClases, client } = useQuery(GET_CLASES_QUERY);
+  const [cuestionariosPorClase, setCuestionariosPorClase] = useState<any>({});
+
+  // Obtener el último cuestionario ACTIVO de cada clase
+  useEffect(() => {
+    isMounted.current = true;
+    const fetchCuestionariosActivos = async () => {
+      if (!clasesData?.clase) return;
+      const cuestionarios: Record<string, any> = {};
+      for (const cl of clasesData.clase) {
+        try {
+          const { data } = await client.query({
+            query: GET_CUESTIONARIOS_QUERY,
+            variables: { claseId: cl.id },
+            fetchPolicy: 'network-only',
+          });
+          // Filtrar solo los cuestionarios con estado ACTIVA y tomar el más reciente
+          const activos = (data?.cuestionario || []).filter((q: any) => q.estado === 'ACTIVA');
+          cuestionarios[cl.id] = activos.length > 0 ? activos[0] : null;
+        } catch (err) {
+          cuestionarios[cl.id] = null;
+        }
+      }
+      setCuestionariosPorClase(cuestionarios);
+    };
+    if (clasesData?.clase?.length > 0) {
+      fetchCuestionariosActivos();
+    }
+    return () => {
+      isMounted.current = false;
+    };
+  }, [clasesData, client]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -23,7 +58,6 @@ export default function Panel() {
         try {
           const userObj = JSON.parse(userStr);
           setUsuario(userObj);
-          console.log('Usuario cargado en panel:', userObj);
         } catch {
           setUsuario(null);
         }
@@ -46,9 +80,26 @@ export default function Panel() {
       setIdentificador("");
       setShowCrearClase(false);
       refetchClases();
-      toast.success('Clase creada con éxito');
+      if (isMounted.current) toast.success('Clase creada con éxito');
     } catch (err) {
-      toast.error("Error al crear la clase");
+      if (isMounted.current) toast.error("Error al crear la clase");
+    }
+  };
+
+  // Refrescar cuestionarios de una clase
+  const refrescarCuestionariosClase = async (claseId: string) => {
+    try {
+      const { data } = await client.query({
+        query: GET_CUESTIONARIOS_QUERY,
+        variables: { claseId },
+        fetchPolicy: 'network-only',
+      });
+      const activos = (data?.cuestionario || []).filter((q: any) => q.estado === 'ACTIVA');
+      setCuestionariosPorClase((prev: any) => ({ ...prev, [claseId]: activos.length > 0 ? activos[0] : null }));
+      return true;
+    } catch (err) {
+      if (isMounted.current) toast.error('Error al refrescar cuestionarios');
+      return false;
     }
   };
 
@@ -112,9 +163,42 @@ export default function Panel() {
                 <button
                   type="button"
                   className="panel-btn panel-btn-gray"
-                  // TODO: onClick para iniciar cuestionario
+                  onClick={async () => {
+                    if (!cuestionariosPorClase[cl.id]) {
+                      // Iniciar cuestionario
+                      try {
+                        await createCuestionario({
+                          variables: {
+                            object: {
+                              clase_id: cl.id,
+                              estado: 'ACTIVA',
+                            },
+                          },
+                        });
+                        if (isMounted.current) toast.success('Cuestionario iniciado');
+                        await refrescarCuestionariosClase(cl.id);
+                      } catch (err) {
+                        if (isMounted.current) toast.error('Error al iniciar el cuestionario');
+                      }
+                    } else {
+                      // Cerrar cuestionario
+                      try {
+                        await updateCuestionarioEstado({
+                          variables: {
+                            id: cuestionariosPorClase[cl.id].id,
+                            estado: 'CERRADA' as any,
+                          },
+                        });
+                        if (isMounted.current) toast.warn('Cuestionario cerrado');
+                        await refrescarCuestionariosClase(cl.id);
+                      } catch (err) {
+                        console.error('Error al cerrar el cuestionario:', err);
+                        if (isMounted.current) toast.error('Error al cerrar el cuestionario');
+                      }
+                    }
+                  }}
                 >
-                  Iniciar cuestionario
+                  {cuestionariosPorClase[cl.id] ? 'Cerrar cuestionario' : 'Iniciar cuestionario'}
                 </button>
                 <button
                   type="button"
@@ -135,7 +219,7 @@ export default function Panel() {
           </li>
         ))}
       </ul>
-      <ToastContainer position="bottom-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
     </div>
   );
 }
+export default Panel;

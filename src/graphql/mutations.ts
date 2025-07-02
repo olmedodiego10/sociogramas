@@ -1,3 +1,11 @@
+export const UPDATE_CUESTIONARIO_ESTADO_MUTATION = gql`
+  mutation UpdateCuestionarioEstado($id: uuid!, $estado: estado_cuestionario_enum!) {
+    update_cuestionario_by_pk(pk_columns: {id: $id}, _set: {estado: $estado}) {
+      id
+      estado
+    }
+  }
+`;
 import { gql } from '@apollo/client';
 
 // Esto es un ejemplo y no se usa
@@ -33,6 +41,16 @@ export const CREATE_ESTUDIANTE_MUTATION = gql`
       created_at
       clase_id
       grupo_id
+    }
+  }
+`;
+
+export const CREATE_CUESTIONARIO_MUTATION = gql`
+  mutation CreateCuestionario($object: cuestionario_insert_input!) {
+    insert_cuestionario_one(object: $object) {
+      id
+      clase_id
+      estado
     }
   }
 `;

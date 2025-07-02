@@ -52,7 +52,6 @@ const manejarEnvio = async (e: ManejarEnvioEvent): Promise<void> => {
   useEffect(() => {
     if (data && data.usuario && data.usuario.length > 0) {
       const usuarioDb = data.usuario[0];
-      console.log('Usuario recibido en login:', usuarioDb);
       if (usuarioDb.password === datosLogin.password) {
         localStorage.setItem('usuario', JSON.stringify(usuarioDb));
         toast.success('Sesión iniciada con éxito. ¡Bienvenido! 😎');
