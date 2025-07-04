@@ -32,7 +32,8 @@ export default function Home() {
         if (estudiante.cuestionario_id) {
           toast.success("Cargando cuestionario");
           setTimeout(() => {
-            router.push("/cuestionario");
+            // Pasar el código del estudiante como query param
+            router.push(`/cuestionario?codigo_estudiante=${encodeURIComponent(estudiante.codigo_estudiante)}`);
           }, 1000);
         } else {
           toast.warn("No tienes un cuestionario asignado");

@@ -1,12 +1,40 @@
 
 "use client";
-import React from "react";
+
+import React, { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { useLazyQuery } from "@apollo/client";
+import { GET_ESTUDIANTE_BY_CODIGO_QUERY } from "@/graphql/queries";
 
 export default function CuestionarioEstudiante() {
+  const searchParams = useSearchParams();
+  const codigoEstudiante = searchParams.get("codigo_estudiante");
+
+  const [getEstudiante, { data, loading, error }] = useLazyQuery(GET_ESTUDIANTE_BY_CODIGO_QUERY);
+
+  useEffect(() => {
+    if (codigoEstudiante) {
+      getEstudiante({ variables: { codigo: codigoEstudiante } });
+    }
+  }, [codigoEstudiante, getEstudiante]);
+
+  let nombreEstudiante = "";
+  if (data && data.estudiante && data.estudiante.length > 0) {
+    nombreEstudiante = data.estudiante[0].nombre;
+  }
+
   return (
     <div className="panel-container">
+      {loading && <p>Cargando estudiante...</p>}
+      {error && <p>Error al cargar el estudiante</p>}
+      {nombreEstudiante && (
+        <h1 className="panel-estudiante-title">
+          Estudiante: {nombreEstudiante}
+        </h1>
+      )}
       <h2 className="panel-form-title">Instrucciones</h2>
       <div style={{ marginTop: 12 }}>
+        {/* ...existing code... */}
         <p style={{ marginBottom: 12 }}>✅ La información es confidencial y solo será leída por tu referente. Nadie más tendrá acceso a las respuestas.</p>
         <p style={{ marginBottom: 12 }}>🎯 El objetivo es armar grupos de trabajo donde todos se sientan cómodos, puedan colaborar, aprender y participar.</p>
         <p style={{ marginBottom: 12 }}>✋ No estamos preguntando si te llevás bien o mal con alguien, ni si son amigos. Podés ser muy amigo/a de alguien y que al momento de trabajar no se entiendan, o no ser cercanos y funcionar muy bien juntos.</p>
