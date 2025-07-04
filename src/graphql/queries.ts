@@ -48,3 +48,15 @@ export const GET_CUESTIONARIOS_QUERY = gql`
     }
   }
 `;
+
+// Nuevo query para buscar estudiante por código
+export const GET_ESTUDIANTE_BY_CODIGO_QUERY = gql`
+  query GetEstudianteByCodigo($codigo: uuid!) {
+    estudiante(where: {codigo_estudiante: {_eq: $codigo}}) {
+      id
+      nombre
+      codigo_estudiante
+      cuestionario_id
+    }
+  }
+`;
