@@ -6,15 +6,19 @@ import { useSearchParams } from "next/navigation";
 import { useLazyQuery } from "@apollo/client";
 import { GET_ESTUDIANTE_BY_CODIGO_QUERY } from "@/graphql/queries";
 import { GET_CLASES_QUERY } from "@/graphql/queries";
+import { GET_ESTUDIANTES_QUERY } from "@/graphql/queries";
 
 export default function CuestionarioEstudiante() {
+  const [indiceEstudiante, setIndiceEstudiante] = React.useState(0);
   const [mostrarPreguntas, setMostrarPreguntas] = React.useState(false);
   const [claseId, setClaseId] = React.useState(null);
+  const [cuestionarioId, setCuestionarioId] = React.useState(null);
   const searchParams = useSearchParams();
   const codigoEstudiante = searchParams.get("codigo_estudiante");
 
   const [getEstudiante, { data, loading, error }] = useLazyQuery(GET_ESTUDIANTE_BY_CODIGO_QUERY);
   const [getClases, { data: dataClases }] = useLazyQuery(GET_CLASES_QUERY);
+  const [getEstudiantes, { data: dataEstudiantes }] = useLazyQuery(GET_ESTUDIANTES_QUERY);
 
   useEffect(() => {
     if (codigoEstudiante) {
@@ -26,9 +30,14 @@ export default function CuestionarioEstudiante() {
   useEffect(() => {
     if (data && data.estudiante && data.estudiante.length > 0) {
       const claseIdEst = data.estudiante[0].clase_id;
+      const cuestionarioIdEst = data.estudiante[0].cuestionario_id;
       setClaseId(claseIdEst);
+      setCuestionarioId(cuestionarioIdEst);
       if (claseIdEst) {
         getClases({ variables: { claseId: claseIdEst } });
+      }
+      if (cuestionarioIdEst) {
+        getEstudiantes({ variables: { claseId: claseIdEst } });
       }
     }
   }, [data, getClases]);
@@ -94,6 +103,35 @@ export default function CuestionarioEstudiante() {
       {mostrarPreguntas && (
         <div className="panel-container">
           <h1 style={{ textAlign: "center" }}>aqui las preguntas</h1>
+          {/* Mostrar un estudiante a la vez con botón siguiente */}
+          {dataEstudiantes && dataEstudiantes.estudiante && dataEstudiantes.estudiante.length > 0 ? (() => {
+            const estudiantesFiltrados = (dataEstudiantes.estudiante as Array<{ id: string; nombre: string; cuestionario_id: string }>)
+              .filter((e) => e.cuestionario_id === cuestionarioId);
+            if (estudiantesFiltrados.length === 0) {
+              return <p style={{ textAlign: 'center', marginTop: 24 }}>No hay estudiantes para este cuestionario.</p>;
+            }
+            const estudianteActual = estudiantesFiltrados[indiceEstudiante];
+            return (
+              <div style={{ textAlign: 'center', marginTop: 32 }}>
+                <div style={{ fontSize: '1.5em', marginBottom: 24 }}>
+                  {estudianteActual.nombre}
+                </div>
+                <button
+                  className="panel-btn"
+                  onClick={() => setIndiceEstudiante((prev) => prev + 1)}
+                  disabled={indiceEstudiante >= estudiantesFiltrados.length - 1}
+                  style={{ marginTop: 16 }}
+                >
+                  Siguiente
+                </button>
+                <div style={{ marginTop: 16, color: '#888', fontSize: '0.95em' }}>
+                  {indiceEstudiante + 1} de {estudiantesFiltrados.length}
+                </div>
+              </div>
+            );
+          })() : (
+            <p style={{ textAlign: 'center', marginTop: 24 }}>No hay estudiantes para este cuestionario.</p>
+          )}
         </div>
       )}
     </>
