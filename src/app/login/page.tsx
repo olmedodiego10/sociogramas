@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useId, useState } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useLazyQuery } from '@apollo/client';
 import { GET_USUARIO_QUERY } from '@/graphql/queries';
@@ -106,8 +106,6 @@ const manejarEnvio = async (e: ManejarEnvioEvent): Promise<void> => {
         <Link href="/" className="login-link" style={{ display: 'block', marginTop: 16 }}>
           Regresar
         </Link>
-        {/* ToastContainer para mostrar los mensajes */}
-        <ToastContainer position="bottom-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
       </form>
     </div>
   );

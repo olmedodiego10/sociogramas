@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useMutation, useQuery } from "@apollo/client";
 import { CREATE_ESTUDIANTE_MUTATION, UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION } from "@/graphql/mutations";
@@ -115,7 +115,7 @@ export default function ClasesPage() {
                             <strong>Código de estudiante:</strong>
                             <button
                                 type="button"
-                                className="panel-btn"
+                                className="panel-btn panel-btn-gray"
                                 style={{ marginLeft: 8, padding: '2px 10px', fontSize: '0.95em', verticalAlign: 'middle' }}
                                 onClick={() => navigator.clipboard.writeText(est.codigo_estudiante)}
                                 title="Copiar código"
@@ -143,7 +143,7 @@ export default function ClasesPage() {
                                 </button>
                             ) : null
                         )}
-                        <button className="panel-btn" type="button" style={{ minWidth: 60 }}>
+                        <button className="panel-btn-blue" type="button" style={{ minWidth: 60 }}>
                             Ver
                         </button>
                     </li>

@@ -47,7 +47,7 @@ export default function RootLayout({
           <main className="main-content">
             <Providers>
               {children}
-              <ToastContainer position="bottom-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
+              <ToastContainer position="bottom-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover theme="colored"/>
             </Providers>
           </main>
         </div>
