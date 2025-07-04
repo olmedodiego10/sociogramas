@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useMutation, useQuery } from "@apollo/client";
-import { CREATE_ESTUDIANTE_MUTATION } from "@/graphql/mutations";
-import { GET_ESTUDIANTES_QUERY } from "@/graphql/queries";
+import { CREATE_ESTUDIANTE_MUTATION, UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION } from "@/graphql/mutations";
+import { GET_ESTUDIANTES_QUERY, GET_CUESTIONARIOS_QUERY } from "@/graphql/queries";
 import { useSearchParams } from "next/navigation";
 import '../sociogramas.css';
 import Link from "next/link";
@@ -14,11 +14,40 @@ export default function ClasesPage() {
     const claseId = searchParams.get("id");
     const identificador = searchParams.get("identificador");
     const [nombre, setNombre] = useState("");
+
     const [createEstudiante] = useMutation(CREATE_ESTUDIANTE_MUTATION);
     const { data: estudiantesData, refetch: refetchEstudiantes } = useQuery(GET_ESTUDIANTES_QUERY, {
         variables: { claseId },
         skip: !claseId,
     });
+
+    // Obtener el cuestionario actual de la clase (el más reciente, si existe)
+    const { data: cuestionariosData } = useQuery(GET_CUESTIONARIOS_QUERY, {
+        variables: { claseId },
+        skip: !claseId,
+    });
+    // Buscar el cuestionario más reciente con estado ACTIVA (siempre devolver undefined si no hay ninguno)
+    const cuestionarioActual = Array.isArray(cuestionariosData?.cuestionario)
+        ? cuestionariosData.cuestionario.find((c: any) => c && c.estado === "ACTIVA")
+        : undefined;
+
+    const [updateEstudianteCuestionario, { loading: updatingCuestionario }] = useMutation(UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION);
+
+    const handleAsignarCuestionario = async (estudianteId: string) => {
+        if (!cuestionarioActual) {
+            toast.error('La clase no tiene cuestionario activo');
+            return;
+        }
+        try {
+            await updateEstudianteCuestionario({
+                variables: { id: estudianteId, cuestionario_id: cuestionarioActual.id }
+            });
+            refetchEstudiantes();
+            toast.success('Cuestionario asignado');
+        } catch (err) {
+            toast.error('Error al asignar el cuestionario');
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,6 +82,11 @@ export default function ClasesPage() {
             </Link>
             <form onSubmit={handleSubmit} className="panel-form">
                 <h2 className="panel-form-title">Clase {identificador}</h2>
+                {!cuestionarioActual && (
+                    <div style={{ color: '#b71c1c', fontWeight: 600, marginBottom: 8 }}>
+                        Sin cuestionario activo
+                    </div>
+                )}
                 <input
                     type="text"
                     className="panel-input"
@@ -65,7 +99,7 @@ export default function ClasesPage() {
                     autoComplete="off"
                     aria-label="Nombre del estudiante"
                 />
-                <button type="submit" className="panel-btn panel-btn-green">
+                <button type="submit" className="panel-btn">
                     Agregar estudiante
                 </button>
             </form>
@@ -91,9 +125,24 @@ export default function ClasesPage() {
                             <br />
                             <span style={{ color: '#666', fontSize: '0.98em', wordBreak: 'break-all', verticalAlign: 'middle' }}>{est.codigo_estudiante}</span>
                         </div>
-                        <span style={{ marginRight: 16, fontSize: '0.97em', color: est.cuestionario_id ? '#388e3c' : '#b71c1c' }}>
-                            {est.cuestionario_id ? 'Cuestionario asignado' : 'Sin cuestionario asignado'}
-                        </span>
+                        {est.cuestionario_id ? (
+                            <span style={{ marginRight: 16, fontSize: '0.97em', color: '#388e3c' }}>
+                                Cuestionario asignado
+                            </span>
+                        ) : (
+                            cuestionarioActual ? (
+                                <button
+                                    type="button"
+                                    className="panel-btn"
+                                    style={{ marginRight: 16, minWidth: 120 }}
+                                    disabled={updatingCuestionario}
+                                    onClick={() => handleAsignarCuestionario(est.id)}
+                                    title="Asignar cuestionario"
+                                >
+                                    Asignar cuestionario
+                                </button>
+                            ) : null
+                        )}
                         <button className="panel-btn" type="button" style={{ minWidth: 60 }}>
                             Ver
                         </button>
@@ -105,7 +154,6 @@ export default function ClasesPage() {
                     Regresar
                 </Link>
             </div>
-        <ToastContainer position="bottom-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
     </div>
     );
 }

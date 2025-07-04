@@ -141,7 +141,7 @@ function Panel() {
             autoComplete="off"
             aria-label="Nombre de la clase"
           />
-          <button type="submit" className="panel-btn panel-btn-green">
+          <button type="submit" className="panel-btn">
             Guardar
           </button>
         </form>
@@ -156,7 +156,7 @@ function Panel() {
               <div style={{ display: 'flex', gap: 10 }}>
                 <Link
                   href={{ pathname: '/clases', query: { id: cl.id, identificador: cl.identificador } }}
-                  className="panel-btn panel-btn-green"
+                  className="panel-btn"
                 >
                   Gestión estudiantes
                 </Link>
