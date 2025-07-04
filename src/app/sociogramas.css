@@ -1,18 +1,46 @@
-/* Título principal del estudiante en cuestionario */
 .panel-estudiante-title {
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   font-size: 2.3em;
-  color: white;
-  background: linear-gradient(45deg, #4CAF50, #45a049);
-  border-radius: 10px;
-  padding: 18px 0;
+  color: #1db954;
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px 0 0 0;
   margin-top: 0;
-  margin-left: 0;
-  margin-right: 0;
-  box-shadow: 0 2px 8px rgba(76,175,80,0.08);
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
   letter-spacing: 1px;
   text-align: center;
   font-weight: 700;
+  max-width: 800px;
+  width: 100%;
+  display: block;
+}
+.panel-clase-id {
+  font-size: 0.7em;
+  color: #1db954;
+  font-weight: 400;
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+/* Título principal del estudiante en cuestionario */
+.panel-estudiante-title {
+  margin-bottom: 24px;
+  font-size: 2.3em;
+  color: #1db954;
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px 0;
+  margin-top: 0;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+  letter-spacing: 1px;
+  text-align: center;
+  font-weight: 700;
+  max-width: 800px;
+  width: 100%;
+  display: block;
 }
 .panel-btn.panel-btn-gray {
   background: #9e9e9e;
