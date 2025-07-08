@@ -61,3 +61,27 @@ export const GET_ESTUDIANTE_BY_CODIGO_QUERY = gql`
     }
   }
 `;
+
+// Obtener todas las preguntas
+export const GET_PREGUNTAS_QUERY = gql`
+  query GetPreguntas {
+    pregunta(order_by: {numero_pregunta: asc}) {
+      id
+      numero_pregunta
+      tipo_pregunta
+      texto
+      es_obligatoria
+    }
+  }
+`;
+
+// Obtener todas las opciones de preguntas
+export const GET_OPCIONES_PREGUNTA_QUERY = gql`
+  query GetOpcionesPregunta {
+    opcion_pregunta(order_by: {created_at: asc}) {
+      id
+      pregunta_id
+      texto_opcion
+    }
+  }
+`;

@@ -1,46 +1,59 @@
-
 "use client";
-
 import React, { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLazyQuery } from "@apollo/client";
 import { GET_ESTUDIANTE_BY_CODIGO_QUERY } from "@/graphql/queries";
 import { GET_CLASES_QUERY } from "@/graphql/queries";
 import { GET_ESTUDIANTES_QUERY } from "@/graphql/queries";
+import { GET_PREGUNTAS_QUERY, GET_OPCIONES_PREGUNTA_QUERY } from "@/graphql/queries";
 
 export default function CuestionarioEstudiante() {
   const [indiceEstudiante, setIndiceEstudiante] = React.useState(0);
   const [mostrarPreguntas, setMostrarPreguntas] = React.useState(false);
   const [claseId, setClaseId] = React.useState(null);
   const [cuestionarioId, setCuestionarioId] = React.useState(null);
+  // Estado para la opción seleccionada por estudiante
+  const [opcionesSeleccionadas, setOpcionesSeleccionadas] = React.useState<{ [estudianteId: string]: string }>({});
+  // Estado para checkboxes seleccionados por estudiante y pregunta extra
+  const [checkboxesSeleccionados, setCheckboxesSeleccionados] = React.useState<{ [key: string]: string[] }>({});
+  // Estado para texto de "Otro motivo" por estudiante y pregunta extra
+  const [otroMotivoText, setOtroMotivoText] = React.useState<{ [key: string]: string }>({});
   const searchParams = useSearchParams();
   const codigoEstudiante = searchParams.get("codigo_estudiante");
 
   const [getEstudiante, { data, loading, error }] = useLazyQuery(GET_ESTUDIANTE_BY_CODIGO_QUERY);
   const [getClases, { data: dataClases }] = useLazyQuery(GET_CLASES_QUERY);
   const [getEstudiantes, { data: dataEstudiantes }] = useLazyQuery(GET_ESTUDIANTES_QUERY);
+  const [getPreguntas, { data: dataPreguntas }] = useLazyQuery(GET_PREGUNTAS_QUERY);
+  const [getOpcionesPregunta, { data: dataOpcionesPregunta }] = useLazyQuery(GET_OPCIONES_PREGUNTA_QUERY);
 
+  // Carga estudiante, clase y estudiantes relacionados
   useEffect(() => {
-    if (codigoEstudiante) {
-      getEstudiante({ variables: { codigo: codigoEstudiante } });
-    }
-  }, [codigoEstudiante, getEstudiante]);
+    if (!codigoEstudiante) return;
+    // Buscar estudiante por código
+    getEstudiante({ variables: { codigo: codigoEstudiante } })
+      .then((result) => {
+        const estudiante = result?.data?.estudiante?.[0];
+        if (estudiante) {
+          const claseIdEst = estudiante.clase_id;
+          const cuestionarioIdEst = estudiante.cuestionario_id;
+          setClaseId(claseIdEst);
+          setCuestionarioId(cuestionarioIdEst);
+          if (claseIdEst) {
+            getClases({ variables: { claseId: claseIdEst } });
+            getEstudiantes({ variables: { claseId: claseIdEst } });
+          }
+        }
+      });
+  }, [codigoEstudiante, getEstudiante, getClases, getEstudiantes]);
 
-  // Cuando se obtiene el estudiante, buscar la clase
+  // Cargar preguntas y opciones solo cuando se muestran
   useEffect(() => {
-    if (data && data.estudiante && data.estudiante.length > 0) {
-      const claseIdEst = data.estudiante[0].clase_id;
-      const cuestionarioIdEst = data.estudiante[0].cuestionario_id;
-      setClaseId(claseIdEst);
-      setCuestionarioId(cuestionarioIdEst);
-      if (claseIdEst) {
-        getClases({ variables: { claseId: claseIdEst } });
-      }
-      if (cuestionarioIdEst) {
-        getEstudiantes({ variables: { claseId: claseIdEst } });
-      }
+    if (mostrarPreguntas) {
+      if (!dataPreguntas) getPreguntas();
+      if (!dataOpcionesPregunta) getOpcionesPregunta();
     }
-  }, [data, getClases]);
+  }, [mostrarPreguntas, dataPreguntas, dataOpcionesPregunta]);
 
   let nombreEstudiante = "";
   if (data && data.estudiante && data.estudiante.length > 0) {
@@ -52,9 +65,21 @@ export default function CuestionarioEstudiante() {
   if (dataClases && dataClases.clase && dataClases.clase.length > 0) {
     identificadorClase = dataClases.clase[0].identificador;
   }
+  const [finalizado, setFinalizado] = React.useState(false);
+  // Handler para finalizar
+  const handleSiguiente = (estudiantesFiltrados: any[]) => {
+    if (indiceEstudiante >= estudiantesFiltrados.length - 1) {
+      setFinalizado(true);
+    } else {
+      setIndiceEstudiante((prev) => prev + 1);
+    }
+  };
+  const handleVolverInicio = () => {
+    window.location.href = "/";
+  };
   return (
     <>
-      {!mostrarPreguntas && (
+      {!mostrarPreguntas && !finalizado && (
         <>
           {nombreEstudiante && (
             <div className="panel-estudiante-title" style={{ paddingBottom: 0 }}>
@@ -100,38 +125,168 @@ export default function CuestionarioEstudiante() {
           </div>
         </>
       )}
-      {mostrarPreguntas && (
+      {mostrarPreguntas && !finalizado && (
         <div className="panel-container">
-          <h1 style={{ textAlign: "center" }}>aqui las preguntas</h1>
+          {dataPreguntas && dataPreguntas.pregunta ? (() => {
+            const pregunta = (dataPreguntas.pregunta as Array<{ id: string; texto: string; tipo_pregunta: string; numero_pregunta: number }>).find(
+              (p) => p.tipo_pregunta === "AFINIDAD_ESTUDIANTE" && p.numero_pregunta === 1
+            );
+            return pregunta ? (
+              <p style={{ textAlign: "center", fontWeight: 600, fontSize: "1.2em", margin: 0 }}>{pregunta.texto}</p>
+            ) : null;
+          })() : null}
           {/* Mostrar un estudiante a la vez con botón siguiente */}
-          {dataEstudiantes && dataEstudiantes.estudiante && dataEstudiantes.estudiante.length > 0 ? (() => {
-            const estudiantesFiltrados = (dataEstudiantes.estudiante as Array<{ id: string; nombre: string; cuestionario_id: string }>)
-              .filter((e) => e.cuestionario_id === cuestionarioId);
+          {dataEstudiantes && dataEstudiantes.estudiante && dataPreguntas && dataPreguntas.pregunta && dataOpcionesPregunta && dataOpcionesPregunta.opcion_pregunta ? (() => {
+            const estudiantesFiltrados = (dataEstudiantes.estudiante as Array<{ id: string; nombre: string; cuestionario_id: string }> )
+              .filter((e) => e.cuestionario_id === cuestionarioId && e.id !== (data?.estudiante?.[0]?.id));
             if (estudiantesFiltrados.length === 0) {
               return <p style={{ textAlign: 'center', marginTop: 24 }}>No hay estudiantes para este cuestionario.</p>;
             }
+            // Si ya se finalizó, no mostrar nada aquí
+            if (indiceEstudiante >= estudiantesFiltrados.length) return null;
             const estudianteActual = estudiantesFiltrados[indiceEstudiante];
+            // Buscar la pregunta de afinidad
+            const pregunta = (dataPreguntas.pregunta as Array<{ id: string; texto: string; tipo_pregunta: string; numero_pregunta: number }> ).find(
+              (p) => p.tipo_pregunta === "AFINIDAD_ESTUDIANTE" && p.numero_pregunta === 1
+            );
+            // Opciones para la pregunta
+            const opciones = pregunta ? (dataOpcionesPregunta.opcion_pregunta as Array<{ id: string; pregunta_id: string; texto_opcion: string }> ).filter(
+              (op) => op.pregunta_id === pregunta.id
+            ) : [];
+            // Función para estilos de color y obtener icono
+            const getOptionStyle = (texto: string) => {
+              if (/verde/i.test(texto)) return { color: 'green', fontWeight: 600 };
+              if (/amarillo/i.test(texto)) return { color: '#e6c200', fontWeight: 600 };
+              if (/rojo/i.test(texto)) return { color: 'red', fontWeight: 600 };
+              if (/blanco/i.test(texto)) return { color: 'black', fontWeight: 700 };
+              return {};
+            };
+            const getOptionIcon = (texto: string) => {
+              if (/verde/i.test(texto)) return '🟩';
+              if (/amarillo/i.test(texto)) return '🟨';
+              if (/rojo/i.test(texto)) return '🟥';
+              if (/blanco/i.test(texto)) return '⚪';
+              return '';
+            };
+
+            // Determinar la opción seleccionada para este estudiante
+            const opcionSeleccionada = opcionesSeleccionadas[estudianteActual.id] || "";
+            const textoSeleccionado = opciones.find((op) => op.id === opcionSeleccionada)?.texto_opcion || "";
+
+            // Determinar la pregunta a mostrar según la opción seleccionada
+            let preguntaExtra: { texto: string } | null = null;
+            if (/verde/i.test(textoSeleccionado)) {
+              preguntaExtra = (dataPreguntas.pregunta as Array<{ texto: string; tipo_pregunta: string; numero_pregunta: number }>).find(
+                (p) => p.tipo_pregunta === "MULTIPLE_SELECCION" && p.numero_pregunta === 2
+              ) || null;
+            } else if (/amarillo/i.test(textoSeleccionado)) {
+              preguntaExtra = (dataPreguntas.pregunta as Array<{ texto: string; tipo_pregunta: string; numero_pregunta: number }>).find(
+                (p) => p.tipo_pregunta === "MULTIPLE_SELECCION" && p.numero_pregunta === 3
+              ) || null;
+            } else if (/rojo/i.test(textoSeleccionado)) {
+              preguntaExtra = (dataPreguntas.pregunta as Array<{ texto: string; tipo_pregunta: string; numero_pregunta: number }>).find(
+                (p) => p.tipo_pregunta === "MULTIPLE_SELECCION" && p.numero_pregunta === 4
+              ) || null;
+            }
+
             return (
               <div style={{ textAlign: 'center', marginTop: 32 }}>
-                <div style={{ fontSize: '1.5em', marginBottom: 24 }}>
+                <div style={{ fontSize: '1.5em', marginBottom: 16 }}>
                   {estudianteActual.nombre}
                 </div>
+                {/* Selector de opciones debajo del nombre */}
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+                  <select
+                    style={{ fontSize: '1.1em', padding: '8px 16px', borderRadius: 8, border: '1px solid #ccc', minWidth: 220, textAlign: 'left', fontWeight: 600 }}
+                    value={opcionSeleccionada}
+                    onChange={e => setOpcionesSeleccionadas(prev => ({ ...prev, [estudianteActual.id]: e.target.value }))}
+                  >
+                    <option value="">Selecciona una opción</option>
+                    {opciones.map((op) => (
+                      <option key={op.id} value={op.id} style={getOptionStyle(op.texto_opcion)}>
+                        {getOptionIcon(op.texto_opcion)} {op.texto_opcion}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {/* Pregunta extra según selección */}
+                {preguntaExtra && (
+                  <div style={{ margin: '16px 0', textAlign: 'center', fontWeight: 600, fontSize: '1.1em', maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
+                    {preguntaExtra.texto}
+                    {/* Lista de checkboxes para las opciones de la pregunta extra */}
+                    {dataOpcionesPregunta && dataOpcionesPregunta.opcion_pregunta ? (() => {
+                      const opcionesExtra = (dataOpcionesPregunta.opcion_pregunta as Array<{ id: string; pregunta_id: string; texto_opcion: string }> ).filter(
+                        (op) => op.pregunta_id === (preguntaExtra as any).id
+                      );
+                      // Clave única por estudiante y pregunta extra
+                      const key = `${estudianteActual.id}_${preguntaExtra?.texto}`;
+                      const seleccionados = checkboxesSeleccionados[key] || [];
+                      const handleCheckboxChange = (opId: string) => {
+                        setCheckboxesSeleccionados(prev => {
+                          const actual = prev[key] || [];
+                          if (actual.includes(opId)) {
+                            return { ...prev, [key]: actual.filter(id => id !== opId) };
+                          } else {
+                            return { ...prev, [key]: [...actual, opId] };
+                          }
+                        });
+                      };
+                      const handleOtroMotivoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                        setOtroMotivoText(prev => ({ ...prev, [key]: e.target.value }));
+                      };
+                      return (
+                        <div style={{ marginTop: 16, textAlign: 'left', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
+                          {opcionesExtra.map((op) => {
+                            const esOtroMotivo = /otro motivo/i.test(op.texto_opcion);
+                            return (
+                              <div key={op.id} style={{ marginBottom: 8 }}>
+                                <label style={{ cursor: 'pointer', fontWeight: 400 }}>
+                                  <input
+                                    type="checkbox"
+                                    style={{ marginRight: 8 }}
+                                    checked={seleccionados.includes(op.id)}
+                                    onChange={() => handleCheckboxChange(op.id)}
+                                  />
+                                  {op.texto_opcion}
+                                </label>
+                                {esOtroMotivo && seleccionados.includes(op.id) && (
+                                  <input
+                                    type="text"
+                                    placeholder="Especifica el motivo..."
+                                    value={otroMotivoText[key] || ''}
+                                    onChange={handleOtroMotivoChange}
+                                    style={{ marginLeft: 12, marginTop: 6, padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc', minWidth: 220 }}
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })() : null}
+                  </div>
+                )}
                 <button
                   className="panel-btn"
-                  onClick={() => setIndiceEstudiante((prev) => prev + 1)}
-                  disabled={indiceEstudiante >= estudiantesFiltrados.length - 1}
+                  onClick={() => handleSiguiente(estudiantesFiltrados)}
                   style={{ marginTop: 16 }}
                 >
-                  Siguiente
+                  {indiceEstudiante >= estudiantesFiltrados.length - 1 ? 'Finalizar' : 'Siguiente'}
                 </button>
                 <div style={{ marginTop: 16, color: '#888', fontSize: '0.95em' }}>
                   {indiceEstudiante + 1} de {estudiantesFiltrados.length}
                 </div>
               </div>
             );
-          })() : (
-            <p style={{ textAlign: 'center', marginTop: 24 }}>No hay estudiantes para este cuestionario.</p>
-          )}
+          })() : null}
+        </div>
+      )}
+      {finalizado && (
+        <div className="panel-container" style={{ textAlign: 'center', marginTop: 64 }}>
+          <h2 style={{ fontWeight: 700, fontSize: '2em', marginBottom: 24 }}>¡Has completado el cuestionario!</h2>
+          <button className="panel-btn" style={{ fontSize: '1.1em', padding: '12px 32px', borderRadius: 8 }} onClick={handleVolverInicio}>
+            Volver al inicio
+          </button>
         </div>
       )}
     </>
