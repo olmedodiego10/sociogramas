@@ -71,7 +71,8 @@ export const CREATE_RESPUESTA_MUTATION = gql`
       estudiante_id
       pregunta_id
       estudiante_evaluado_id
-      valor_respuesta
+      opcion_pregunta_id
+      otro_texto
       created_at
       updated_at
     }
@@ -84,7 +85,7 @@ export const UPDATE_RESPUESTA_MUTATION = gql`
     $estudiante_id: uuid!,
     $pregunta_id: uuid!,
     $estudiante_evaluado_id: uuid!,
-    $valor_respuesta: String!
+    $opcion_pregunta_id: uuid
   ) {
     update_respuesta(
       where: {
@@ -93,7 +94,7 @@ export const UPDATE_RESPUESTA_MUTATION = gql`
         pregunta_id: { _eq: $pregunta_id },
         estudiante_evaluado_id: { _eq: $estudiante_evaluado_id }
       },
-      _set: { valor_respuesta: $valor_respuesta }
+      _set: { opcion_pregunta_id: $opcion_pregunta_id }
     ) {
       returning {
         id
@@ -101,7 +102,7 @@ export const UPDATE_RESPUESTA_MUTATION = gql`
         estudiante_id
         pregunta_id
         estudiante_evaluado_id
-        valor_respuesta
+        opcion_pregunta_id
         created_at
         updated_at
       }
@@ -115,7 +116,8 @@ export const UPSERT_RESPUESTA_MUTATION = gql`
     $estudiante_id: uuid!
     $pregunta_id: uuid!
     $estudiante_evaluado_id: uuid!
-    $valor_respuesta: String
+    $opcion_pregunta_id: uuid
+    $otro_texto: String
   ) {
     insert_respuesta(
       objects: {
@@ -123,11 +125,12 @@ export const UPSERT_RESPUESTA_MUTATION = gql`
         estudiante_id: $estudiante_id
         pregunta_id: $pregunta_id
         estudiante_evaluado_id: $estudiante_evaluado_id
-        valor_respuesta: $valor_respuesta
+        opcion_pregunta_id: $opcion_pregunta_id
+        otro_texto: $otro_texto
       }
       on_conflict: {
-        constraint: respuesta_cuestionario_id_pregunta_id_estudiante_id_estudiante_
-        update_columns: [valor_respuesta, updated_at]
+        constraint: respuesta_cuestionario_id_estudiante_id_pregunta_id_estudiante_
+        update_columns: [opcion_pregunta_id, otro_texto, updated_at]
       }
     ) {
       affected_rows

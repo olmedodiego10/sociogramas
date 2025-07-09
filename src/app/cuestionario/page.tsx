@@ -62,7 +62,7 @@ export default function CuestionarioEstudiante() {
     }
   }, [mostrarPreguntas, dataPreguntas, dataOpcionesPregunta]);
   
-  // Effect para cargar preguntas adicionales cuando se completa la sección de estudiantes
+  // useEffect para cargar preguntas adicionales cuando se completa la sección de estudiantes
   useEffect(() => {
     if (estudiantesFinalizados && dataPreguntas && dataPreguntas.pregunta) {
       const preguntasAdicionales = (dataPreguntas.pregunta as Array<{ id: string; tipo_pregunta: string; numero_pregunta: number }>)
@@ -90,7 +90,6 @@ export default function CuestionarioEstudiante() {
   }
   // Mutaciones para respuestas
   const [upsertRespuesta] = useMutation(UPSERT_RESPUESTA_MUTATION);
-  const [crearRespuesta] = useMutation(CREATE_RESPUESTA_MUTATION);
 
   // Handler para siguiente (guarda respuesta antes de avanzar)
   const [errorSeleccion, setErrorSeleccion] = React.useState<string>("");
@@ -153,9 +152,9 @@ export default function CuestionarioEstudiante() {
     const opcionSeleccionada = (dataOpcionesPregunta.opcion_pregunta as Array<{ id: string; texto_opcion: string }> ).find(
       (op) => op.id === opcionSeleccionadaId
     );
-    const valorRespuesta = opcionSeleccionada ? opcionSeleccionada.texto_opcion : "";
+    const valorRespuesta = opcionSeleccionada ? opcionSeleccionada.texto_opcion : ""; // Mantener para la lógica condicional
     // Ejecutar mutación para la opción principal
-    if (opcionSeleccionadaId && valorRespuesta) {
+    if (opcionSeleccionadaId) {
       try {
         await upsertRespuesta({
           variables: {
@@ -163,7 +162,8 @@ export default function CuestionarioEstudiante() {
             estudiante_id: estudianteQueResponde.id,
             pregunta_id: pregunta.id,
             estudiante_evaluado_id: estudianteActual.id,
-            valor_respuesta: valorRespuesta,
+            opcion_pregunta_id: opcionSeleccionadaId,
+            otro_texto: null, // No hay texto adicional para la pregunta principal
           },
         });
       } catch (e) {
@@ -201,8 +201,8 @@ export default function CuestionarioEstudiante() {
         if (!opcion) continue;
         let valor = opcion.texto_opcion;
         if (/otro motivo/i.test(opcion.texto_opcion)) {
-          valor = otroMotivoText[key] || "";
-          if (!valor.trim()) {
+          valor = otroMotivoText[key]?.trim() || "";
+          if (!valor) {
             errorOtroMotivo = true;
           }
         }
@@ -214,15 +214,35 @@ export default function CuestionarioEstudiante() {
       }
       // Si pasa la validación, guardar todas las respuestas una a una (no en paralelo, sin duplicados, usando upsert)
       try {
-        const respuestasCheckboxUnicas = Array.from(new Set(respuestasCheckbox));
-        for (const valor of respuestasCheckboxUnicas) {
+        // Ahora debemos encontrar el ID de la opción, no solo el texto
+        const opcionesExtra = (dataOpcionesPregunta.opcion_pregunta as Array<{ id: string; pregunta_id: string; texto_opcion: string }> )
+          .filter(op => op.pregunta_id === preguntaExtra.id);
+        
+        for (const opId of seleccionados) {
+          // Buscar la opción por su ID
+          const opcion = opcionesExtra.find(o => o.id === opId);
+          if (!opcion) continue;
+          
+          // Para "Otro motivo", guardar el texto adicional
+          let otroTexto = null;
+          if (/otro motivo/i.test(opcion.texto_opcion)) {
+            // Obtener el texto, pero permitir que sea null si está vacío
+            const textoIngresado = otroMotivoText[key]?.trim();
+            // Si no tiene texto, saltar esta opción
+            if (!textoIngresado) {
+              continue;
+            }
+            otroTexto = textoIngresado; // Solo asignar si hay texto
+          }
+          
           await upsertRespuesta({
             variables: {
               cuestionario_id: cuestionarioId,
               estudiante_id: estudianteQueResponde.id,
               pregunta_id: preguntaExtra.id,
               estudiante_evaluado_id: estudianteActual.id,
-              valor_respuesta: valor,
+              opcion_pregunta_id: opId,
+              otro_texto: otroTexto,
             },
           });
         }
@@ -307,7 +327,8 @@ export default function CuestionarioEstudiante() {
             estudiante_id: estudianteQueResponde.id,
             pregunta_id: preguntaActual.id,
             estudiante_evaluado_id: estudianteId,
-            valor_respuesta: null, // Valor nulo según los nuevos requisitos del backend
+            opcion_pregunta_id: null, // Valor nulo según los nuevos requisitos
+            otro_texto: null, // No hay texto adicional para estas preguntas
           },
         });
       }
@@ -520,7 +541,7 @@ export default function CuestionarioEstudiante() {
                   onClick={() => handleSiguiente(estudiantesFiltrados)}
                   style={{ marginTop: 16 }}
                 >
-                  {indiceEstudiante >= estudiantesFiltrados.length - 1 ? 'Finalizar' : 'Siguiente'}
+                  {indiceEstudiante >= estudiantesFiltrados.length - 1 ? 'Continuar' : 'Siguiente'}
                 </button>
                 <div style={{ marginTop: 16, color: '#888', fontSize: '0.95em' }}>
                   {indiceEstudiante + 1} de {estudiantesFiltrados.length}
