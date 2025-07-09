@@ -348,7 +348,7 @@ export default function CuestionarioEstudiante() {
     <>
       {/* Panel estudiante y clase siempre visible */}
       {nombreEstudiante && (
-        <div className="panel-estudiante-title" style={{ paddingBottom: 0 }}>
+        <div className="panel-estudiante-title">
           <div>Estudiante: {nombreEstudiante}</div>
           {identificadorClase && (
             <div className="panel-clase-id">
@@ -383,8 +383,8 @@ export default function CuestionarioEstudiante() {
               <p style={{ marginBottom: 12 }}>🧠 Elegí una opción por cada compañero/a según cómo fue trabajar juntos/as en actividades reales. No hay respuestas correctas o incorrectas. Tus respuestas nos ayudan a pensar grupos más justos, cómodos y donde todos y todas puedan participar mejor.</p>
             </div>
             {/* Línea agregada antes del botón */}
-            <hr style={{ margin: '24px 0' }} />
-            <div style={{ display: "flex", justifyContent: "center" }}>
+            <hr className="cuestionario-separador" />
+            <div className="cuestionario-centrar-boton">
               <button className="panel-btn" onClick={() => setMostrarPreguntas(true)}>
                 Comenzar
               </button>
@@ -399,7 +399,7 @@ export default function CuestionarioEstudiante() {
               (p) => p.tipo_pregunta === "AFINIDAD_ESTUDIANTE" && p.numero_pregunta === 1
             );
             return pregunta ? (
-              <p style={{ textAlign: "center", fontWeight: 600, fontSize: "1.2em", margin: 0 }}>{pregunta.texto}</p>
+              <p className="cuestionario-pregunta-texto">{pregunta.texto}</p>
             ) : null;
           })() : null}
           {/* Mostrar un estudiante a la vez con botón siguiente */}
@@ -420,14 +420,7 @@ export default function CuestionarioEstudiante() {
             const opciones = pregunta ? (dataOpcionesPregunta.opcion_pregunta as Array<{ id: string; pregunta_id: string; texto_opcion: string }> ).filter(
               (op) => op.pregunta_id === pregunta.id
             ) : [];
-            // Función para estilos de color y obtener icono
-            const getOptionStyle = (texto: string) => {
-              if (/verde/i.test(texto)) return { color: 'green', fontWeight: 600 };
-              if (/amarillo/i.test(texto)) return { color: '#e6c200', fontWeight: 600 };
-              if (/rojo/i.test(texto)) return { color: 'red', fontWeight: 600 };
-              if (/blanco/i.test(texto)) return { color: 'black', fontWeight: 700 };
-              return {};
-            };
+            // Función para obtener icono (ya no necesitamos getOptionStyle porque usamos clases CSS)
             const getOptionIcon = (texto: string) => {
               if (/verde/i.test(texto)) return '🟩';
               if (/amarillo/i.test(texto)) return '🟨';
@@ -457,20 +450,29 @@ export default function CuestionarioEstudiante() {
             }
 
             return (
-              <div style={{ textAlign: 'center', marginTop: 32 }}>
-                <div style={{ fontSize: '1.5em', marginBottom: 16 }}>
+              <div className="cuestionario-centro">
+                <div className="cuestionario-nombre-estudiante">
                   {estudianteActual.nombre}
                 </div>
                 {/* Selector de opciones debajo del nombre */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+                <div className="cuestionario-opciones-container">
                   <select
-                    style={{ fontSize: '1.1em', padding: '8px 16px', borderRadius: 8, border: '1px solid #ccc', minWidth: 220, textAlign: 'left', fontWeight: 600 }}
+                    className="cuestionario-select"
                     value={opcionSeleccionada}
                     onChange={e => setOpcionesSeleccionadas(prev => ({ ...prev, [estudianteActual.id]: e.target.value }))}
                   >
                     <option value="">Selecciona una opción</option>
                     {opciones.map((op) => (
-                      <option key={op.id} value={op.id} style={getOptionStyle(op.texto_opcion)}>
+                      <option 
+                        key={op.id} 
+                        value={op.id} 
+                        className={
+                          /verde/i.test(op.texto_opcion) ? 'opcion-verde' : 
+                          /amarillo/i.test(op.texto_opcion) ? 'opcion-amarillo' : 
+                          /rojo/i.test(op.texto_opcion) ? 'opcion-rojo' : 
+                          /blanco/i.test(op.texto_opcion) ? 'opcion-blanco' : ''
+                        }
+                      >
                         {getOptionIcon(op.texto_opcion)} {op.texto_opcion}
                       </option>
                     ))}
@@ -478,7 +480,7 @@ export default function CuestionarioEstudiante() {
                 </div>
                 {/* Pregunta extra según selección */}
                 {preguntaExtra && (
-                  <div style={{ margin: '16px 0', textAlign: 'center', fontWeight: 600, fontSize: '1.1em', maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
+                  <div className="cuestionario-pregunta-extra">
                     {preguntaExtra.texto}
                     {/* Lista de checkboxes para las opciones de la pregunta extra */}
                     {dataOpcionesPregunta && dataOpcionesPregunta.opcion_pregunta ? (() => {
@@ -502,15 +504,15 @@ export default function CuestionarioEstudiante() {
                         setOtroMotivoText(prev => ({ ...prev, [key]: e.target.value }));
                       };
                       return (
-                        <div style={{ marginTop: 16, textAlign: 'left', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
+                        <div className="cuestionario-opciones-extra">
                           {opcionesExtra.map((op) => {
                             const esOtroMotivo = /otro motivo/i.test(op.texto_opcion);
                             return (
-                              <div key={op.id} style={{ marginBottom: 8 }}>
-                                <label style={{ cursor: 'pointer', fontWeight: 400 }}>
+                              <div key={op.id} className="cuestionario-opcion-item">
+                                <label className="cuestionario-opcion-label">
                                   <input
                                     type="checkbox"
-                                    style={{ marginRight: 8 }}
+                                    className="cuestionario-checkbox"
                                     checked={seleccionados.includes(op.id)}
                                     onChange={() => handleCheckboxChange(op.id)}
                                   />
@@ -522,7 +524,7 @@ export default function CuestionarioEstudiante() {
                                     placeholder="Especifica el motivo..."
                                     value={otroMotivoText[key] || ''}
                                     onChange={handleOtroMotivoChange}
-                                    style={{ marginLeft: 12, marginTop: 6, padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc', minWidth: 220 }}
+                                    className="cuestionario-otro-motivo"
                                   />
                                 )}
                               </div>
@@ -534,16 +536,15 @@ export default function CuestionarioEstudiante() {
                   </div>
                 )}
                 {errorSeleccion && (
-                  <div style={{ color: 'red', marginBottom: 8, fontWeight: 500 }}>{errorSeleccion}</div>
+                  <div className="cuestionario-error">{errorSeleccion}</div>
                 )}
                 <button
-                  className="panel-btn"
+                  className="panel-btn cuestionario-btn"
                   onClick={() => handleSiguiente(estudiantesFiltrados)}
-                  style={{ marginTop: 16 }}
                 >
                   {indiceEstudiante >= estudiantesFiltrados.length - 1 ? 'Continuar' : 'Siguiente'}
                 </button>
-                <div style={{ marginTop: 16, color: '#888', fontSize: '0.95em' }}>
+                <div className="cuestionario-contador">
                   {indiceEstudiante + 1} de {estudiantesFiltrados.length}
                 </div>
               </div>
@@ -588,39 +589,31 @@ export default function CuestionarioEstudiante() {
             };
             
             return (
-              <div style={{ textAlign: 'center', marginTop: 32 }}>
-                <div style={{ fontSize: '1.3em', marginBottom: 24, fontWeight: 600 }}>
+              <div className="cuestionario-centro">
+                <div className="cuestionario-pregunta-titulo">
                   {preguntaActual.texto}
                 </div>
                 
                 {/* Lista de estudiantes como checkboxes */}
-                <div style={{ marginTop: 24, textAlign: 'left', maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
-                  <p style={{ marginBottom: 16, fontWeight: 500 }}>Selecciona a los compañeros que cumplen con esta característica:</p>
+                <div className="cuestionario-estudiantes-lista">
+                  <p className="cuestionario-instruccion">Selecciona a los compañeros que cumplen con esta característica:</p>
                   
-                  <div style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    maxHeight: '400px',
-                    overflowY: 'auto',
-                    border: '1px solid #eee',
-                    padding: '16px',
-                    borderRadius: '8px'
-                  }}>
+                  <div className="cuestionario-estudiantes-container">
                     {estudiantesDelCurso.length === 0 ? (
                       <p>No hay estudiantes disponibles para seleccionar.</p>
                     ) : (
                       estudiantesDelCurso.map((estudiante) => (
-                        <div key={estudiante.id} style={{ marginBottom: 10, display: 'flex', alignItems: 'center' }}>
+                        <div key={estudiante.id} className="cuestionario-estudiante-item">
                           <input
                             type="checkbox"
                             id={`estudiante-${estudiante.id}-${key}`}
                             checked={estudiantesSeleccionadosParaPregunta.includes(estudiante.id)}
                             onChange={() => handleEstudianteCheckboxChange(estudiante.id)}
-                            style={{ marginRight: 10, width: 18, height: 18 }}
+                            className="cuestionario-estudiante-checkbox"
                           />
                           <label 
                             htmlFor={`estudiante-${estudiante.id}-${key}`} 
-                            style={{ cursor: 'pointer', fontWeight: 400, fontSize: '1.1em' }}
+                            className="cuestionario-estudiante-label"
                           >
                             {estudiante.nombre}
                           </label>
@@ -631,18 +624,17 @@ export default function CuestionarioEstudiante() {
                 </div>
                 
                 {errorSeleccion && (
-                  <div style={{ color: 'red', marginTop: 16, fontWeight: 500 }}>{errorSeleccion}</div>
+                  <div className="cuestionario-error">{errorSeleccion}</div>
                 )}
                 
                 <button
-                  className="panel-btn"
+                  className="panel-btn cuestionario-btn"
                   onClick={handleSiguientePreguntaAdicional}
-                  style={{ marginTop: 24 }}
                 >
                   {indicePreguntaActual >= preguntasAdicionales.length - 1 ? 'Finalizar' : 'Siguiente'}
                 </button>
                 
-                <div style={{ marginTop: 16, color: '#888', fontSize: '0.95em' }}>
+                <div className="cuestionario-contador">
                   Pregunta {indicePreguntaActual + 1} de {preguntasAdicionales.length}
                 </div>
               </div>
@@ -651,10 +643,10 @@ export default function CuestionarioEstudiante() {
         </div>
       )}
       {finalizado && (
-        <div className="panel-container" style={{ textAlign: 'center', marginTop: 64 }}>
-          <h2 style={{ fontWeight: 700, fontSize: '2em', marginBottom: 24 }}>¡Has completado el cuestionario!</h2>
-          <p style={{ marginBottom: 24 }}>Gracias por tu participación. Tus respuestas nos ayudarán a crear mejores grupos de trabajo.</p>
-          <button className="panel-btn" style={{ fontSize: '1.1em', padding: '12px 32px', borderRadius: 8 }} onClick={handleVolverInicio}>
+        <div className="panel-container cuestionario-finalizado">
+          <h2 className="cuestionario-titulo-finalizado">¡Has completado el cuestionario!</h2>
+          <p className="cuestionario-mensaje-finalizado">Gracias por tu participación. Tus respuestas nos ayudarán a crear mejores grupos de trabajo.</p>
+          <button className="panel-btn cuestionario-boton-finalizado" onClick={handleVolverInicio}>
             Volver al inicio
           </button>
         </div>

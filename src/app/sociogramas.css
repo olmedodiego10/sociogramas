@@ -514,3 +514,197 @@ body {
 .panel-list-item:last-child {
   border-bottom: none;
 }
+
+/* Estilos para el cuestionario de estudiantes */
+.cuestionario-nombre-estudiante {
+  font-size: 1.5em;
+  margin-bottom: 16px;
+}
+
+.cuestionario-opciones-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.cuestionario-select {
+  font-size: 1.1em;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  min-width: 220px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.cuestionario-pregunta-extra {
+  margin: 16px 0;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.1em;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cuestionario-opciones-extra {
+  margin-top: 16px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cuestionario-opcion-item {
+  margin-bottom: 8px;
+}
+
+.cuestionario-opcion-label {
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.cuestionario-checkbox {
+  margin-right: 8px;
+}
+
+.cuestionario-otro-motivo {
+  margin-left: 12px;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  min-width: 220px;
+}
+
+.cuestionario-error {
+  color: red;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.cuestionario-contador {
+  margin-top: 16px;
+  color: #888;
+  font-size: 0.95em;
+}
+
+.cuestionario-pregunta-titulo {
+  font-size: 1.3em;
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+.cuestionario-estudiantes-lista {
+  margin-top: 24px;
+  text-align: left;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cuestionario-instruccion {
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.cuestionario-estudiantes-container {
+  display: flex;
+  flex-direction: column;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.cuestionario-estudiante-item {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.cuestionario-estudiante-checkbox {
+  margin-right: 10px;
+  width: 18px;
+  height: 18px;
+}
+
+.cuestionario-estudiante-label {
+  cursor: pointer;
+  font-weight: 400;
+  font-size: 1.1em;
+}
+
+.cuestionario-centro {
+  text-align: center;
+  margin-top: 32px;
+}
+
+.cuestionario-finalizado {
+  text-align: center;
+  margin-top: 64px;
+}
+
+.cuestionario-titulo-finalizado {
+  font-weight: 700;
+  font-size: 2em;
+  margin-bottom: 24px;
+}
+
+.cuestionario-mensaje-finalizado {
+  margin-bottom: 24px;
+}
+
+.cuestionario-boton-finalizado {
+  font-size: 1.1em;
+  padding: 12px 32px;
+  border-radius: 8px;
+}
+
+.cuestionario-instrucciones-item {
+  margin-bottom: 12px;
+}
+
+.opcion-verde {
+  color: green;
+  font-weight: 600;
+}
+
+.opcion-amarillo {
+  color: #e6c200;
+  font-weight: 600;
+}
+
+.opcion-rojo {
+  color: red;
+  font-weight: 600;
+}
+
+.opcion-blanco {
+  color: black;
+  font-weight: 700;
+}
+
+.cuestionario-separador {
+  margin: 24px 0;
+}
+
+.cuestionario-centrar-boton {
+  display: flex;
+  justify-content: center;
+}
+
+.cuestionario-pregunta-texto {
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.2em;
+  margin: 0;
+}
+
+.cuestionario-btn {
+  margin-top: 16px;
+}
