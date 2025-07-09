@@ -115,7 +115,7 @@ export const UPSERT_RESPUESTA_MUTATION = gql`
     $estudiante_id: uuid!
     $pregunta_id: uuid!
     $estudiante_evaluado_id: uuid!
-    $valor_respuesta: String!
+    $valor_respuesta: String
   ) {
     insert_respuesta(
       objects: {

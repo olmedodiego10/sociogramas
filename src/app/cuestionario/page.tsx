@@ -19,6 +19,12 @@ export default function CuestionarioEstudiante() {
   const [checkboxesSeleccionados, setCheckboxesSeleccionados] = React.useState<{ [key: string]: string[] }>({});
   // Estado para texto de "Otro motivo" por estudiante y pregunta extra
   const [otroMotivoText, setOtroMotivoText] = React.useState<{ [key: string]: string }>({});
+  // Estado para controlar etapas del cuestionario
+  const [estudiantesFinalizados, setEstudiantesFinalizados] = React.useState(false);
+  const [preguntasAdicionales, setPreguntasAdicionales] = React.useState<number[]>([]);
+  const [indicePreguntaActual, setIndicePreguntaActual] = React.useState(0);
+  const [finalizado, setFinalizado] = React.useState(false);
+  
   const searchParams = useSearchParams();
   const codigoEstudiante = searchParams.get("codigo_estudiante");
 
@@ -55,6 +61,22 @@ export default function CuestionarioEstudiante() {
       if (!dataOpcionesPregunta) getOpcionesPregunta();
     }
   }, [mostrarPreguntas, dataPreguntas, dataOpcionesPregunta]);
+  
+  // Effect para cargar preguntas adicionales cuando se completa la sección de estudiantes
+  useEffect(() => {
+    if (estudiantesFinalizados && dataPreguntas && dataPreguntas.pregunta) {
+      const preguntasAdicionales = (dataPreguntas.pregunta as Array<{ id: string; tipo_pregunta: string; numero_pregunta: number }>)
+        .filter(p => p.tipo_pregunta === "MULTIPLE_SELECCION" && p.numero_pregunta >= 5)
+        .sort((a, b) => a.numero_pregunta - b.numero_pregunta);
+      
+      if (preguntasAdicionales.length > 0) {
+        setPreguntasAdicionales(preguntasAdicionales.map(p => p.numero_pregunta));
+        setIndicePreguntaActual(0);
+      } else {
+        setFinalizado(true);
+      }
+    }
+  }, [estudiantesFinalizados, dataPreguntas]);
 
   let nombreEstudiante = "";
   if (data && data.estudiante && data.estudiante.length > 0) {
@@ -66,7 +88,6 @@ export default function CuestionarioEstudiante() {
   if (dataClases && dataClases.clase && dataClases.clase.length > 0) {
     identificadorClase = dataClases.clase[0].identificador;
   }
-  const [finalizado, setFinalizado] = React.useState(false);
   // Mutaciones para respuestas
   const [upsertRespuesta] = useMutation(UPSERT_RESPUESTA_MUTATION);
   const [crearRespuesta] = useMutation(CREATE_RESPUESTA_MUTATION);
@@ -78,7 +99,19 @@ export default function CuestionarioEstudiante() {
     if (!data || !data.estudiante || !dataPreguntas || !dataPreguntas.pregunta || !dataOpcionesPregunta || !dataOpcionesPregunta.opcion_pregunta) {
       // Si falta data, solo avanzar
       if (indiceEstudiante >= estudiantesFiltrados.length - 1) {
-        setFinalizado(true);
+        setEstudiantesFinalizados(true);
+        // Verificar y cargar las preguntas adicionales (inicialmente la 5)
+        const preguntasAdicionales = (dataPreguntas?.pregunta as Array<{ id: string; tipo_pregunta: string; numero_pregunta: number }> || [])
+          .filter(p => p.tipo_pregunta === "MULTIPLE_SELECCION" && p.numero_pregunta >= 5)
+          .sort((a, b) => a.numero_pregunta - b.numero_pregunta);
+        
+        if (preguntasAdicionales.length > 0) {
+          setPreguntasAdicionales(preguntasAdicionales.map(p => p.numero_pregunta));
+          setIndicePreguntaActual(0);
+        } else {
+          // Si no hay preguntas adicionales, finalizar el cuestionario
+          setFinalizado(true);
+        }
       } else {
         setIndiceEstudiante((prev) => prev + 1);
       }
@@ -92,7 +125,19 @@ export default function CuestionarioEstudiante() {
     );
     if (!pregunta) {
       if (indiceEstudiante >= estudiantesFiltrados.length - 1) {
-        setFinalizado(true);
+        setEstudiantesFinalizados(true);
+        // Verificar y cargar las preguntas adicionales
+        const preguntasAdicionales = (dataPreguntas?.pregunta as Array<{ id: string; tipo_pregunta: string; numero_pregunta: number }> || [])
+          .filter(p => p.tipo_pregunta === "MULTIPLE_SELECCION" && p.numero_pregunta >= 5)
+          .sort((a, b) => a.numero_pregunta - b.numero_pregunta);
+        
+        if (preguntasAdicionales.length > 0) {
+          setPreguntasAdicionales(preguntasAdicionales.map(p => p.numero_pregunta));
+          setIndicePreguntaActual(0);
+        } else {
+          // Si no hay preguntas adicionales, finalizar el cuestionario
+          setFinalizado(true);
+        }
       } else {
         setIndiceEstudiante((prev) => prev + 1);
       }
@@ -186,14 +231,97 @@ export default function CuestionarioEstudiante() {
         console.error("Error guardando respuestas checkbox", e);
       }
     }
+    
+    // Verificar si se han procesado todos los estudiantes
     if (indiceEstudiante >= estudiantesFiltrados.length - 1) {
-      setFinalizado(true);
+      setEstudiantesFinalizados(true);
+      
+      // Cargar preguntas adicionales (inicialmente la 5)
+      const preguntasAdicionales = (dataPreguntas?.pregunta as Array<{ id: string; tipo_pregunta: string; numero_pregunta: number }> || [])
+        .filter(p => p.tipo_pregunta === "MULTIPLE_SELECCION" && p.numero_pregunta >= 5)
+        .sort((a, b) => a.numero_pregunta - b.numero_pregunta);
+      
+      if (preguntasAdicionales.length > 0) {
+        setPreguntasAdicionales(preguntasAdicionales.map(p => p.numero_pregunta));
+        setIndicePreguntaActual(0);
+      } else {
+        // Si no hay preguntas adicionales, finalizar el cuestionario
+        setFinalizado(true);
+      }
     } else {
       setIndiceEstudiante((prev) => prev + 1);
     }
   };
   const handleVolverInicio = () => {
     window.location.href = "/";
+  };
+
+  // Estado para los estudiantes seleccionados por pregunta adicional
+  const [estudiantesSeleccionados, setEstudiantesSeleccionados] = React.useState<{ [key: string]: string[] }>({});
+
+  // Método para manejar las preguntas adicionales
+  const handleSiguientePreguntaAdicional = async () => {
+    if (!data?.estudiante?.[0] || !dataPreguntas?.pregunta || !cuestionarioId || !dataEstudiantes?.estudiante) return;
+    
+    const estudianteQueResponde = data.estudiante[0];
+    const numeroPreguntaActual = preguntasAdicionales[indicePreguntaActual];
+    
+    // Buscar la pregunta actual
+    const preguntaActual = (dataPreguntas.pregunta as Array<{ id: string; texto: string; tipo_pregunta: string; numero_pregunta: number }>).find(
+      (p) => p.tipo_pregunta === "MULTIPLE_SELECCION" && p.numero_pregunta === numeroPreguntaActual
+    );
+    
+    if (!preguntaActual) {
+      // Si no se encuentra la pregunta, avanzar a la siguiente
+      if (indicePreguntaActual < preguntasAdicionales.length - 1) {
+        setIndicePreguntaActual(prev => prev + 1);
+      } else {
+        setFinalizado(true);
+      }
+      return;
+    }
+    
+    // Clave única para esta pregunta adicional
+    const key = `adicional_${preguntaActual.id}`;
+    
+    // Estudiantes seleccionados para esta pregunta
+    const estudiantesSeleccionadosParaPregunta = estudiantesSeleccionados[key] || [];
+    
+    setErrorSeleccion("");
+    
+    // Obtener los estudiantes relacionados con las selecciones
+    const estudiantesDelCurso = (dataEstudiantes.estudiante as Array<{ id: string; nombre: string; cuestionario_id: string }> )
+      .filter((e) => e.cuestionario_id === cuestionarioId && e.id !== estudianteQueResponde.id);
+    
+    try {
+      // Guardar una respuesta por cada estudiante seleccionado
+      for (const estudianteId of estudiantesSeleccionadosParaPregunta) {
+        // Encontrar el estudiante seleccionado
+        const estudianteSeleccionado = estudiantesDelCurso.find(e => e.id === estudianteId);
+        if (!estudianteSeleccionado) continue;
+        
+        // Guardar respuesta con el estudiante evaluado
+        await upsertRespuesta({
+          variables: {
+            cuestionario_id: cuestionarioId,
+            estudiante_id: estudianteQueResponde.id,
+            pregunta_id: preguntaActual.id,
+            estudiante_evaluado_id: estudianteId,
+            valor_respuesta: null, // Valor nulo según los nuevos requisitos del backend
+          },
+        });
+      }
+      
+      // Avanzar a la siguiente pregunta o finalizar
+      if (indicePreguntaActual < preguntasAdicionales.length - 1) {
+        setIndicePreguntaActual(prev => prev + 1);
+      } else {
+        setFinalizado(true);
+      }
+      
+    } catch (e) {
+      console.error("Error guardando respuestas de pregunta adicional", e);
+    }
   };
   return (
     <>
@@ -243,7 +371,7 @@ export default function CuestionarioEstudiante() {
           </div>
         </>
       )}
-      {mostrarPreguntas && !finalizado && (
+      {mostrarPreguntas && !finalizado && !estudiantesFinalizados && (
         <div className="panel-container">
           {dataPreguntas && dataPreguntas.pregunta ? (() => {
             const pregunta = (dataPreguntas.pregunta as Array<{ id: string; texto: string; tipo_pregunta: string; numero_pregunta: number }>).find(
@@ -402,9 +530,109 @@ export default function CuestionarioEstudiante() {
           })() : null}
         </div>
       )}
+      
+      {/* Sección para mostrar las preguntas adicionales */}
+      {mostrarPreguntas && !finalizado && estudiantesFinalizados && preguntasAdicionales.length > 0 && (
+        <div className="panel-container">
+          {dataPreguntas && dataPreguntas.pregunta && dataEstudiantes && dataEstudiantes.estudiante ? (() => {
+            const numeroPreguntaActual = preguntasAdicionales[indicePreguntaActual];
+            
+            // Buscar la pregunta actual
+            const preguntaActual = (dataPreguntas.pregunta as Array<{ id: string; texto: string; tipo_pregunta: string; numero_pregunta: number }>).find(
+              (p) => p.tipo_pregunta === "MULTIPLE_SELECCION" && p.numero_pregunta === numeroPreguntaActual
+            );
+            
+            if (!preguntaActual) return null;
+            
+            // Obtener los estudiantes del curso (excluyendo al estudiante que responde)
+            const estudiantesDelCurso = (dataEstudiantes.estudiante as Array<{ id: string; nombre: string; cuestionario_id: string }> )
+              .filter((e) => e.cuestionario_id === cuestionarioId && e.id !== (data?.estudiante?.[0]?.id));
+            
+            // Ordenar estudiantes por nombre para mejor visualización
+            estudiantesDelCurso.sort((a, b) => a.nombre.localeCompare(b.nombre));
+            
+            // Clave única para esta pregunta adicional
+            const key = `adicional_${preguntaActual.id}`;
+            const estudiantesSeleccionadosParaPregunta = estudiantesSeleccionados[key] || [];
+            
+            const handleEstudianteCheckboxChange = (estudianteId: string) => {
+              setEstudiantesSeleccionados(prev => {
+                const actual = prev[key] || [];
+                if (actual.includes(estudianteId)) {
+                  return { ...prev, [key]: actual.filter(id => id !== estudianteId) };
+                } else {
+                  return { ...prev, [key]: [...actual, estudianteId] };
+                }
+              });
+            };
+            
+            return (
+              <div style={{ textAlign: 'center', marginTop: 32 }}>
+                <div style={{ fontSize: '1.3em', marginBottom: 24, fontWeight: 600 }}>
+                  {preguntaActual.texto}
+                </div>
+                
+                {/* Lista de estudiantes como checkboxes */}
+                <div style={{ marginTop: 24, textAlign: 'left', maxWidth: 600, marginLeft: 'auto', marginRight: 'auto' }}>
+                  <p style={{ marginBottom: 16, fontWeight: 500 }}>Selecciona a los compañeros que cumplen con esta característica:</p>
+                  
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    maxHeight: '400px',
+                    overflowY: 'auto',
+                    border: '1px solid #eee',
+                    padding: '16px',
+                    borderRadius: '8px'
+                  }}>
+                    {estudiantesDelCurso.length === 0 ? (
+                      <p>No hay estudiantes disponibles para seleccionar.</p>
+                    ) : (
+                      estudiantesDelCurso.map((estudiante) => (
+                        <div key={estudiante.id} style={{ marginBottom: 10, display: 'flex', alignItems: 'center' }}>
+                          <input
+                            type="checkbox"
+                            id={`estudiante-${estudiante.id}-${key}`}
+                            checked={estudiantesSeleccionadosParaPregunta.includes(estudiante.id)}
+                            onChange={() => handleEstudianteCheckboxChange(estudiante.id)}
+                            style={{ marginRight: 10, width: 18, height: 18 }}
+                          />
+                          <label 
+                            htmlFor={`estudiante-${estudiante.id}-${key}`} 
+                            style={{ cursor: 'pointer', fontWeight: 400, fontSize: '1.1em' }}
+                          >
+                            {estudiante.nombre}
+                          </label>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+                
+                {errorSeleccion && (
+                  <div style={{ color: 'red', marginTop: 16, fontWeight: 500 }}>{errorSeleccion}</div>
+                )}
+                
+                <button
+                  className="panel-btn"
+                  onClick={handleSiguientePreguntaAdicional}
+                  style={{ marginTop: 24 }}
+                >
+                  {indicePreguntaActual >= preguntasAdicionales.length - 1 ? 'Finalizar' : 'Siguiente'}
+                </button>
+                
+                <div style={{ marginTop: 16, color: '#888', fontSize: '0.95em' }}>
+                  Pregunta {indicePreguntaActual + 1} de {preguntasAdicionales.length}
+                </div>
+              </div>
+            );
+          })() : null}
+        </div>
+      )}
       {finalizado && (
         <div className="panel-container" style={{ textAlign: 'center', marginTop: 64 }}>
           <h2 style={{ fontWeight: 700, fontSize: '2em', marginBottom: 24 }}>¡Has completado el cuestionario!</h2>
+          <p style={{ marginBottom: 24 }}>Gracias por tu participación. Tus respuestas nos ayudarán a crear mejores grupos de trabajo.</p>
           <button className="panel-btn" style={{ fontSize: '1.1em', padding: '12px 32px', borderRadius: 8 }} onClick={handleVolverInicio}>
             Volver al inicio
           </button>
