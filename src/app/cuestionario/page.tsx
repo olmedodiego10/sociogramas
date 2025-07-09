@@ -1,11 +1,12 @@
 "use client";
 import React, { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useLazyQuery } from "@apollo/client";
+import { useLazyQuery, useMutation } from "@apollo/client";
 import { GET_ESTUDIANTE_BY_CODIGO_QUERY } from "@/graphql/queries";
 import { GET_CLASES_QUERY } from "@/graphql/queries";
 import { GET_ESTUDIANTES_QUERY } from "@/graphql/queries";
 import { GET_PREGUNTAS_QUERY, GET_OPCIONES_PREGUNTA_QUERY } from "@/graphql/queries";
+import { UPSERT_RESPUESTA_MUTATION, CREATE_RESPUESTA_MUTATION } from "@/graphql/mutations";
 
 export default function CuestionarioEstudiante() {
   const [indiceEstudiante, setIndiceEstudiante] = React.useState(0);
@@ -66,8 +67,125 @@ export default function CuestionarioEstudiante() {
     identificadorClase = dataClases.clase[0].identificador;
   }
   const [finalizado, setFinalizado] = React.useState(false);
-  // Handler para finalizar
-  const handleSiguiente = (estudiantesFiltrados: any[]) => {
+  // Mutaciones para respuestas
+  const [upsertRespuesta] = useMutation(UPSERT_RESPUESTA_MUTATION);
+  const [crearRespuesta] = useMutation(CREATE_RESPUESTA_MUTATION);
+
+  // Handler para siguiente (guarda respuesta antes de avanzar)
+  const [errorSeleccion, setErrorSeleccion] = React.useState<string>("");
+  const handleSiguiente = async (estudiantesFiltrados: any[]) => {
+    // Buscar datos necesarios
+    if (!data || !data.estudiante || !dataPreguntas || !dataPreguntas.pregunta || !dataOpcionesPregunta || !dataOpcionesPregunta.opcion_pregunta) {
+      // Si falta data, solo avanzar
+      if (indiceEstudiante >= estudiantesFiltrados.length - 1) {
+        setFinalizado(true);
+      } else {
+        setIndiceEstudiante((prev) => prev + 1);
+      }
+      return;
+    }
+    const estudianteQueResponde = data.estudiante[0];
+    const estudianteActual = estudiantesFiltrados[indiceEstudiante];
+    // Pregunta de afinidad
+    const pregunta = (dataPreguntas.pregunta as Array<{ id: string; texto: string; tipo_pregunta: string; numero_pregunta: number }> ).find(
+      (p) => p.tipo_pregunta === "AFINIDAD_ESTUDIANTE" && p.numero_pregunta === 1
+    );
+    if (!pregunta) {
+      if (indiceEstudiante >= estudiantesFiltrados.length - 1) {
+        setFinalizado(true);
+      } else {
+        setIndiceEstudiante((prev) => prev + 1);
+      }
+      return;
+    }
+    // Opción seleccionada
+    const opcionSeleccionadaId = opcionesSeleccionadas[estudianteActual.id];
+    if (!opcionSeleccionadaId) {
+      setErrorSeleccion("Debes seleccionar una opción para continuar.");
+      return;
+    }
+    setErrorSeleccion("");
+    const opcionSeleccionada = (dataOpcionesPregunta.opcion_pregunta as Array<{ id: string; texto_opcion: string }> ).find(
+      (op) => op.id === opcionSeleccionadaId
+    );
+    const valorRespuesta = opcionSeleccionada ? opcionSeleccionada.texto_opcion : "";
+    // Ejecutar mutación para la opción principal
+    if (opcionSeleccionadaId && valorRespuesta) {
+      try {
+        await upsertRespuesta({
+          variables: {
+            cuestionario_id: cuestionarioId,
+            estudiante_id: estudianteQueResponde.id,
+            pregunta_id: pregunta.id,
+            estudiante_evaluado_id: estudianteActual.id,
+            valor_respuesta: valorRespuesta,
+          },
+        });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("Error guardando respuesta principal", e);
+      }
+    }
+
+    // Guardar respuestas de checkboxes si hay pregunta extra
+    let preguntaExtra: any = null;
+    if (/verde/i.test(valorRespuesta)) {
+      preguntaExtra = (dataPreguntas.pregunta as Array<{ id: string; tipo_pregunta: string; numero_pregunta: number }>).find(
+        (p) => p.tipo_pregunta === "MULTIPLE_SELECCION" && p.numero_pregunta === 2
+      );
+    } else if (/amarillo/i.test(valorRespuesta)) {
+      preguntaExtra = (dataPreguntas.pregunta as Array<{ id: string; tipo_pregunta: string; numero_pregunta: number }>).find(
+        (p) => p.tipo_pregunta === "MULTIPLE_SELECCION" && p.numero_pregunta === 3
+      );
+    } else if (/rojo/i.test(valorRespuesta)) {
+      preguntaExtra = (dataPreguntas.pregunta as Array<{ id: string; tipo_pregunta: string; numero_pregunta: number }>).find(
+        (p) => p.tipo_pregunta === "MULTIPLE_SELECCION" && p.numero_pregunta === 4
+      );
+    }
+    if (preguntaExtra) {
+      const key = `${estudianteActual.id}_${preguntaExtra.texto}`;
+      const seleccionados = checkboxesSeleccionados[key] || [];
+      const opcionesExtra = (dataOpcionesPregunta.opcion_pregunta as Array<{ id: string; pregunta_id: string; texto_opcion: string }> ).filter(
+        (op) => op.pregunta_id === preguntaExtra.id
+      );
+      // Validar que si "Otro motivo" está seleccionado, el campo no esté vacío
+      let errorOtroMotivo = false;
+      const respuestasCheckbox: string[] = [];
+      for (const opId of seleccionados) {
+        const opcion = opcionesExtra.find((o) => o.id === opId);
+        if (!opcion) continue;
+        let valor = opcion.texto_opcion;
+        if (/otro motivo/i.test(opcion.texto_opcion)) {
+          valor = otroMotivoText[key] || "";
+          if (!valor.trim()) {
+            errorOtroMotivo = true;
+          }
+        }
+        respuestasCheckbox.push(valor);
+      }
+      if (errorOtroMotivo) {
+        setErrorSeleccion("Debes especificar el motivo si seleccionas 'Otro motivo'.");
+        return;
+      }
+      // Si pasa la validación, guardar todas las respuestas una a una (no en paralelo, sin duplicados, usando upsert)
+      try {
+        const respuestasCheckboxUnicas = Array.from(new Set(respuestasCheckbox));
+        for (const valor of respuestasCheckboxUnicas) {
+          await upsertRespuesta({
+            variables: {
+              cuestionario_id: cuestionarioId,
+              estudiante_id: estudianteQueResponde.id,
+              pregunta_id: preguntaExtra.id,
+              estudiante_evaluado_id: estudianteActual.id,
+              valor_respuesta: valor,
+            },
+          });
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error("Error guardando respuestas checkbox", e);
+      }
+    }
     if (indiceEstudiante >= estudiantesFiltrados.length - 1) {
       setFinalizado(true);
     } else {
@@ -79,24 +197,24 @@ export default function CuestionarioEstudiante() {
   };
   return (
     <>
-      {!mostrarPreguntas && !finalizado && (
-        <>
-          {nombreEstudiante && (
-            <div className="panel-estudiante-title" style={{ paddingBottom: 0 }}>
-              <div>Estudiante: {nombreEstudiante}</div>
-              {identificadorClase && (
-                <div className="panel-clase-id">
-                  Clase: {identificadorClase}
-                </div>
-              )}
+      {/* Panel estudiante y clase siempre visible */}
+      {nombreEstudiante && (
+        <div className="panel-estudiante-title" style={{ paddingBottom: 0 }}>
+          <div>Estudiante: {nombreEstudiante}</div>
+          {identificadorClase && (
+            <div className="panel-clase-id">
+              Clase: {identificadorClase}
             </div>
           )}
+        </div>
+      )}
+      {!mostrarPreguntas && !finalizado && (
+        <>
           <div className="panel-container">
             {loading && <p>Cargando estudiante...</p>}
             {error && <p>Error al cargar el estudiante</p>}
             <h2 className="panel-form-title">Instrucciones</h2>
             <div style={{ marginTop: 12 }}>
-              {/* ...existing code... */}
               <p style={{ marginBottom: 12 }}>✅ La información es confidencial y solo será leída por tu referente. Nadie más tendrá acceso a las respuestas.</p>
               <p style={{ marginBottom: 12 }}>🎯 El objetivo es armar grupos de trabajo donde todos se sientan cómodos, puedan colaborar, aprender y participar.</p>
               <p style={{ marginBottom: 12 }}>✋ No estamos preguntando si te llevás bien o mal con alguien, ni si son amigos. Podés ser muy amigo/a de alguien y que al momento de trabajar no se entiendan, o no ser cercanos y funcionar muy bien juntos.</p>
@@ -265,6 +383,9 @@ export default function CuestionarioEstudiante() {
                       );
                     })() : null}
                   </div>
+                )}
+                {errorSeleccion && (
+                  <div style={{ color: 'red', marginBottom: 8, fontWeight: 500 }}>{errorSeleccion}</div>
                 )}
                 <button
                   className="panel-btn"
