@@ -1,28 +1,3 @@
-.panel-estudiante-title {
-  margin-bottom: 24px;
-  font-size: 2.3em;
-  color: #1db954;
-  background: #fff;
-  border-radius: 8px;
-  padding: 12px 0 0 0;
-  margin-top: 0;
-  margin-left: auto;
-  margin-right: auto;
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
-  letter-spacing: 1px;
-  text-align: center;
-  font-weight: 700;
-  max-width: 800px;
-  width: 100%;
-  display: block;
-}
-.panel-clase-id {
-  font-size: 0.7em;
-  color: #1db954;
-  font-weight: 400;
-  margin-top: 4px;
-  margin-bottom: 0;
-}
 /* Título principal del estudiante en cuestionario */
 .panel-estudiante-title {
   margin-bottom: 24px;
@@ -41,6 +16,13 @@
   max-width: 800px;
   width: 100%;
   display: block;
+}
+.panel-clase-id {
+  font-size: 0.7em;
+  color: #1db954;
+  font-weight: 400;
+  margin-top: 4px;
+  margin-bottom: 0;
 }
 .panel-btn.panel-btn-gray {
   background: #9e9e9e;
@@ -61,6 +43,12 @@
   box-shadow: 0 5px 15px rgba(239, 108, 0, 0.3);
 }
 @media (max-width: 900px) {
+  .panel-list-item {
+    min-width: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
   .panel-list-item > div > div {
     flex-direction: column !important;
     gap: 12px !important;
@@ -79,24 +67,6 @@
     justify-content: center;
     align-items: center;
     display: flex;
-  }
-}
-@media (max-width: 900px) {
-  .panel-list-item {
-    min-width: 0;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-  .panel-list-item > div > div {
-    flex-direction: column !important;
-    gap: 12px !important;
-    align-items: stretch !important;
-  }
-  .panel-list-item > div > div > * {
-    width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
   }
 }
 /* Nuevo azul claro para botones de acción secundarios */
@@ -728,30 +698,6 @@ body {
 }
 
 /* Estilos para el componente EstadoCuestionario */
-.estado-cuestionario {
-  font-size: 0.9em;
-  margin-top: 4px;
-}
-
-.estado-cuestionario-completado {
-  font-weight: bold;
-  color: #2e7d32;
-}
-
-.estado-cuestionario-pendiente {
-  font-weight: normal;
-  color: #ed6c02;
-}
-
-.estado-cuestionario-verificando {
-  font-size: 0.9em;
-  color: #666;
-}
-
-.estado-cuestionario-error {
-  font-size: 0.9em;
-  color: #b71c1c;
-}
 
 .opcion-verde {
   color: green;
