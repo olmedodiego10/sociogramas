@@ -48,6 +48,8 @@
 }
 .panel-btn.panel-btn-gray:hover:not(.disabled) {
   background: #616161;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(97, 97, 97, 0.3);
 }
 .panel-btn.panel-btn-orange {
   background: #ff9800;
@@ -55,6 +57,8 @@
 }
 .panel-btn.panel-btn-orange:hover:not(.disabled) {
   background: #ef6c00;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(239, 108, 0, 0.3);
 }
 @media (max-width: 900px) {
   .panel-list-item > div > div {
@@ -112,7 +116,8 @@
 }
 .panel-btn-blue:hover {
   background: #1976d2;
-  box-shadow: 0 5px 15px rgba(25, 118, 210, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(25, 118, 210, 0.3);
 }
 
 /* Botones de cuestionario con tamaño fijo y manejo adecuado del texto */
@@ -386,6 +391,8 @@ body {
 }
 .panel-logout-btn:hover {
   background: #b71c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(183, 28, 28, 0.3);
 }
 
 .panel-description {
@@ -412,6 +419,12 @@ body {
 .btn-agregar-estudiante {
   background: #388e3c;
   margin-left: 0;
+}
+
+.btn-agregar-estudiante:hover:not(.disabled) {
+  background: #2e7d32;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(56, 142, 60, 0.3);
 }
 
 .lista-estudiantes {
@@ -489,7 +502,8 @@ body {
 }
 .panel-btn:hover:not(.disabled) {
   background: #388e3c;
-  box-shadow: 0 5px 15px rgba(56, 142, 60, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(56, 142, 60, 0.3);
 }
 .panel-btn.disabled {
   background: #bdbdbd;
@@ -676,6 +690,11 @@ body {
   font-size: 1.1em;
   padding: 12px 32px;
   border-radius: 8px;
+}
+
+.cuestionario-boton-finalizado:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
 }
 
 .cuestionario-instrucciones-item {
