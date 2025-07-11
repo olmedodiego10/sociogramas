@@ -9,7 +9,7 @@ import { useSearchParams } from "next/navigation";
 import '../sociogramas.css';
 import Link from "next/link";
 
-export default function ClasesPage() {
+export default function EstudiantesPage() {
     const searchParams = useSearchParams();
     const claseId = searchParams.get("id");
     const identificador = searchParams.get("identificador");

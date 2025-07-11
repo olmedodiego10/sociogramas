@@ -155,7 +155,7 @@ function Panel() {
               <div style={{ fontWeight: 600, fontSize: '1.15em', marginBottom: 8 }}>{cl.identificador}</div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <Link
-                  href={{ pathname: '/clases', query: { id: cl.id, identificador: cl.identificador } }}
+                  href={{ pathname: '/estudiantes', query: { id: cl.id, identificador: cl.identificador } }}
                   className="panel-btn"
                 >
                   Gestión estudiantes
