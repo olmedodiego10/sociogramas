@@ -4,10 +4,53 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useMutation, useQuery } from "@apollo/client";
 import { CREATE_ESTUDIANTE_MUTATION, UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION } from "@/graphql/mutations";
-import { GET_ESTUDIANTES_QUERY, GET_CUESTIONARIOS_QUERY } from "@/graphql/queries";
+import { GET_ESTUDIANTES_QUERY, GET_CUESTIONARIOS_QUERY, GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY, GET_ID_ULTIMA_PREGUNTA_QUERY } from "@/graphql/queries";
 import { useSearchParams } from "next/navigation";
 import '../sociogramas.css';
 import Link from "next/link";
+
+// Componente para mostrar el estado del cuestionario
+function EstadoCuestionario({ estudianteId, cuestionarioId }: { estudianteId: string, cuestionarioId: string | null }) {
+    // Si no hay cuestionario asignado, no mostramos nada
+    if (!cuestionarioId) {
+        return null;
+    }
+
+    //Obtener el ID de la última pregunta
+    const { data: preguntaData, loading: loadingPregunta } = useQuery(GET_ID_ULTIMA_PREGUNTA_QUERY);
+    
+    //Verificar si el estudiante ha respondido esa pregunta
+    const { data, loading, error } = useQuery(GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY, {
+        variables: { 
+            estudiante_id: estudianteId, 
+            cuestionario_id: cuestionarioId,
+            pregunta_id: preguntaData?.pregunta?.[0]?.id
+        },
+        skip: !preguntaData?.pregunta?.[0]?.id, // No ejecutar hasta tener el ID de la pregunta
+        fetchPolicy: "cache-and-network"
+    });
+
+    // Mostrar estado de carga
+    if (loadingPregunta || loading) {
+        return <span className="estado-cuestionario-verificando">Verificando estado...</span>;
+    }
+    
+    // Manejar errores de forma silenciosa en la UI
+    if (error) {
+        return <span className="estado-cuestionario-error">Error al verificar</span>;
+    }
+    
+    // Verificar si hay al menos una respuesta para la última pregunta
+    const cuestionarioCompletado = data?.respuesta?.length > 0;
+
+    return (
+        <div className={`estado-cuestionario ${cuestionarioCompletado ? 'estado-cuestionario-completado' : 'estado-cuestionario-pendiente'}`}>
+            {cuestionarioCompletado 
+                ? "Cuestionario completado ✅" 
+                : "Cuestionario pendiente ⌛"}
+        </div>
+    );
+}
 
 export default function EstudiantesPage() {
     const searchParams = useSearchParams();
@@ -55,7 +98,7 @@ export default function EstudiantesPage() {
                 variables: { id: estudianteId, cuestionario_id: null }
             });
             refetchEstudiantes();
-            toast.success('Cuestionario desasignado');
+            toast.warn('Cuestionario desasignado');
         } catch (err) {
             toast.error('Error al desasignar el cuestionario');
         }
@@ -136,6 +179,12 @@ export default function EstudiantesPage() {
                             </button>
                             <br />
                             <span style={{ color: '#666', fontSize: '0.98em', wordBreak: 'break-all', verticalAlign: 'middle' }}>{est.codigo_estudiante}</span>
+                            {est.cuestionario_id && (
+                                <EstadoCuestionario 
+                                    estudianteId={est.id} 
+                                    cuestionarioId={est.cuestionario_id} 
+                                />
+                            )}
                         </div>
                         {est.cuestionario_id ? (
                             <button

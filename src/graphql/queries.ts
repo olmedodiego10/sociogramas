@@ -85,3 +85,26 @@ export const GET_OPCIONES_PREGUNTA_QUERY = gql`
     }
   }
 `;
+
+// Obtener el id de la pregunta con el numero_pregunta más alto (última pregunta)
+export const GET_ID_ULTIMA_PREGUNTA_QUERY = gql`
+  query GetIdUltimaPregunta {
+    pregunta(order_by: {numero_pregunta: desc}, limit: 1) {
+      id
+      numero_pregunta
+    }
+  }
+`;
+
+// Verificar si el estudiante completó el cuestionario
+export const GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY = gql`
+  query GetEstadoCuestionarioEstudiante($estudiante_id: uuid!, $cuestionario_id: uuid!, $pregunta_id: uuid!) {
+    respuesta(where: {
+      estudiante_id: {_eq: $estudiante_id},
+      cuestionario_id: {_eq: $cuestionario_id},
+      pregunta_id: {_eq: $pregunta_id}
+    }, limit: 1) {
+      id
+    }
+  }
+`;

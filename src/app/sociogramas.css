@@ -548,6 +548,32 @@ body {
   margin-bottom: 16px;
 }
 
+/* Estilos para el estado del cuestionario */
+.estado-cuestionario {
+  font-size: 0.9em;
+  margin-top: 4px;
+}
+
+.estado-cuestionario-verificando {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.estado-cuestionario-error {
+  font-size: 0.9em;
+  color: #b71c1c;
+}
+
+.estado-cuestionario-completado {
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+.estado-cuestionario-pendiente {
+  font-weight: normal;
+  color: #ed6c02;
+}
+
 .cuestionario-opciones-container {
   display: flex;
   justify-content: center;
@@ -699,6 +725,32 @@ body {
 
 .cuestionario-instrucciones-item {
   margin-bottom: 12px;
+}
+
+/* Estilos para el componente EstadoCuestionario */
+.estado-cuestionario {
+  font-size: 0.9em;
+  margin-top: 4px;
+}
+
+.estado-cuestionario-completado {
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+.estado-cuestionario-pendiente {
+  font-weight: normal;
+  color: #ed6c02;
+}
+
+.estado-cuestionario-verificando {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.estado-cuestionario-error {
+  font-size: 0.9em;
+  color: #b71c1c;
 }
 
 .opcion-verde {
