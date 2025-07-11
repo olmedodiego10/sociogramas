@@ -565,8 +565,13 @@ body {
 }
 
 .estado-cuestionario-pendiente {
-  font-weight: normal;
+  font-weight: bold; /* Cambiado a negrita para mayor énfasis */
   color: #ed6c02;
+}
+
+.estado-cuestionario-sin-asignar {
+  font-weight: bold; /* Texto en negrita para mayor énfasis */
+  color: #b71c1c; /* Rojo para hacer más visible que no hay cuestionario asignado */
 }
 
 .cuestionario-opciones-container {

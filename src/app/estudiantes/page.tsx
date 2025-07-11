@@ -11,9 +11,13 @@ import Link from "next/link";
 
 // Componente para mostrar el estado del cuestionario
 function EstadoCuestionario({ estudianteId, cuestionarioId }: { estudianteId: string, cuestionarioId: string | null }) {
-    // Si no hay cuestionario asignado, no mostramos nada
+    // Si no hay cuestionario asignado, mostramos un mensaje específico
     if (!cuestionarioId) {
-        return null;
+        return (
+            <div className="estado-cuestionario estado-cuestionario-sin-asignar">
+                Sin cuestionario asignado ❗
+            </div>
+        );
     }
 
     //Obtener el ID de la última pregunta
@@ -225,12 +229,10 @@ export default function EstudiantesPage() {
                             </button>
                             <br />
                             <span style={{ color: '#666', fontSize: '0.98em', wordBreak: 'break-all', verticalAlign: 'middle' }}>{est.codigo_estudiante}</span>
-                            {est.cuestionario_id && (
-                                <EstadoCuestionario 
-                                    estudianteId={est.id} 
-                                    cuestionarioId={est.cuestionario_id} 
-                                />
-                            )}
+                            <EstadoCuestionario 
+                                estudianteId={est.id} 
+                                cuestionarioId={est.cuestionario_id} 
+                            />
                         </div>
                         <button
                             type="button"
