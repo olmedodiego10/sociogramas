@@ -1,3 +1,5 @@
+import { gql } from '@apollo/client';
+
 export const UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION = gql`
   mutation UpdateEstudianteCuestionario($id: uuid!, $cuestionario_id: uuid) {
     update_estudiante_by_pk(pk_columns: {id: $id}, _set: {cuestionario_id: $cuestionario_id}) {
@@ -14,7 +16,6 @@ export const UPDATE_CUESTIONARIO_ESTADO_MUTATION = gql`
     }
   }
 `;
-import { gql } from '@apollo/client';
 
 // Esto es un ejemplo y no se usa
 export const LOGIN_MUTATION = gql`
@@ -36,6 +37,15 @@ export const CREATE_CLASE_MUTATION = gql`
       id
       identificador
       usuario_id
+    }
+  }
+`;
+
+export const DELETE_ESTUDIANTE_MUTATION = gql`
+  mutation DeleteEstudiante($id: uuid!) {
+    delete_estudiante_by_pk(id: $id) {
+      id
+      nombre
     }
   }
 `;

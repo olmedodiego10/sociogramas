@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useMutation, useQuery } from "@apollo/client";
-import { CREATE_ESTUDIANTE_MUTATION, UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION } from "@/graphql/mutations";
+import { CREATE_ESTUDIANTE_MUTATION, UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION, DELETE_ESTUDIANTE_MUTATION } from "@/graphql/mutations";
 import { GET_ESTUDIANTES_QUERY, GET_CUESTIONARIOS_QUERY, GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY, GET_ID_ULTIMA_PREGUNTA_QUERY } from "@/graphql/queries";
 import { useSearchParams } from "next/navigation";
 import '../sociogramas.css';
@@ -59,6 +59,7 @@ export default function EstudiantesPage() {
     const [nombre, setNombre] = useState("");
 
     const [createEstudiante] = useMutation(CREATE_ESTUDIANTE_MUTATION);
+    const [deleteEstudiante, { loading: deletingEstudiante }] = useMutation(DELETE_ESTUDIANTE_MUTATION);
     const { data: estudiantesData, refetch: refetchEstudiantes } = useQuery(GET_ESTUDIANTES_QUERY, {
         variables: { claseId },
         skip: !claseId,
@@ -102,6 +103,51 @@ export default function EstudiantesPage() {
         } catch (err) {
             toast.error('Error al desasignar el cuestionario');
         }
+    };
+
+    const handleDeleteEstudiante = async (estudianteId: string, nombre: string) => {
+        // Usar toast.confirm en lugar de window.confirm para una mejor experiencia visual
+        toast.info(
+            <div>
+                <p>¿Estás seguro de que deseas eliminar al estudiante <strong>{nombre}</strong>?</p>
+                <p style={{ fontSize: '0.9em', marginTop: '8px' }}>Esta acción no se puede deshacer.</p>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', gap: '8px' }}>
+                    <button 
+                        className="panel-btn" 
+                        style={{ padding: '6px 12px', fontSize: '0.9em' }}
+                        onClick={() => toast.dismiss()}
+                    >
+                        Cancelar
+                    </button>
+                    <button 
+                        className="panel-btn panel-btn-red" 
+                        style={{ padding: '6px 12px', fontSize: '0.9em' }}
+                        onClick={async () => {
+                            toast.dismiss();
+                            try {
+                                await deleteEstudiante({
+                                    variables: { id: estudianteId }
+                                });
+                                refetchEstudiantes();
+                                toast.success('Estudiante eliminado correctamente');
+                            } catch (err) {
+                                toast.error('Error al eliminar el estudiante');
+                            }
+                        }}
+                    >
+                        Eliminar
+                    </button>
+                </div>
+            </div>,
+            {
+                autoClose: false,
+                closeOnClick: false,
+                draggable: false,
+                closeButton: false,
+                position: "top-center",
+                className: 'confirm-toast'
+            }
+        );
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -186,6 +232,16 @@ export default function EstudiantesPage() {
                                 />
                             )}
                         </div>
+                        <button
+                            type="button"
+                            className="panel-btn panel-btn-red"
+                            onClick={() => handleDeleteEstudiante(est.id, est.nombre)}
+                            disabled={deletingEstudiante}
+                            style={{ minWidth: 70 }}
+                            title="Eliminar estudiante"
+                        >
+                            {deletingEstudiante ? 'Eliminando...' : 'Eliminar'}
+                        </button>
                         {est.cuestionario_id ? (
                             <button
                                 type="button"
