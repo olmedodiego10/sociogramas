@@ -49,6 +49,18 @@ export default function EstudiantesPage() {
         }
     };
 
+    const handleDesasignarCuestionario = async (estudianteId: string) => {
+        try {
+            await updateEstudianteCuestionario({
+                variables: { id: estudianteId, cuestionario_id: null }
+            });
+            refetchEstudiantes();
+            toast.success('Cuestionario desasignado');
+        } catch (err) {
+            toast.error('Error al desasignar el cuestionario');
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -126,15 +138,20 @@ export default function EstudiantesPage() {
                             <span style={{ color: '#666', fontSize: '0.98em', wordBreak: 'break-all', verticalAlign: 'middle' }}>{est.codigo_estudiante}</span>
                         </div>
                         {est.cuestionario_id ? (
-                            <span style={{ marginRight: 16, fontSize: '0.97em', color: '#388e3c' }}>
-                                Cuestionario asignado
-                            </span>
+                            <button
+                                type="button"
+                                className="panel-btn panel-btn-orange btn-cuestionario"
+                                disabled={updatingCuestionario}
+                                onClick={() => handleDesasignarCuestionario(est.id)}
+                                title="Desasignar cuestionario"
+                            >
+                                Desasignar cuestionario
+                            </button>
                         ) : (
                             cuestionarioActual ? (
                                 <button
                                     type="button"
-                                    className="panel-btn"
-                                    style={{ marginRight: 16, minWidth: 120 }}
+                                    className="panel-btn btn-cuestionario"
                                     disabled={updatingCuestionario}
                                     onClick={() => handleAsignarCuestionario(est.id)}
                                     title="Asignar cuestionario"

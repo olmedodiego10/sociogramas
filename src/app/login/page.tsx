@@ -74,7 +74,7 @@ const manejarEnvio = async (e: ManejarEnvioEvent): Promise<void> => {
     <div>
       <form onSubmit={manejarEnvio} className="login">
         <h2>Iniciar sesión</h2>
-        <label htmlFor={idEmail}>Email</label>
+        <label htmlFor="email-input">Email</label>
         <input
           name="email"
           type="text"
