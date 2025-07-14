@@ -1,13 +1,14 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useMutation, useQuery } from "@apollo/client";
 import { CREATE_ESTUDIANTE_MUTATION, UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION, DELETE_ESTUDIANTE_MUTATION, DELETE_RESPUESTAS_ESTUDIANTE_MUTATION } from "@/graphql/mutations";
-import { GET_ESTUDIANTES_QUERY, GET_CUESTIONARIOS_QUERY, GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY, GET_ID_ULTIMA_PREGUNTA_QUERY } from "@/graphql/queries";
-import { useSearchParams } from "next/navigation";
+import { GET_CUESTIONARIOS_QUERY, GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY, GET_ID_ULTIMA_PREGUNTA_QUERY } from "@/graphql/queries";
 import '../sociogramas.css';
 import Link from "next/link";
+import { useEstudiantes } from "@/context/EstudiantesContext";
+import { useRouter } from "next/navigation";
 
 // Componente para mostrar el estado del cuestionario
 function EstadoCuestionario({ estudianteId, cuestionarioId, ultimaPreguntaId, loadingPregunta }: 
@@ -55,18 +56,20 @@ function EstadoCuestionario({ estudianteId, cuestionarioId, ultimaPreguntaId, lo
 }
 
 export default function EstudiantesPage() {
-    const searchParams = useSearchParams();
-    const claseId = searchParams.get("id");
-    const identificador = searchParams.get("identificador");
+    const router = useRouter();
+    const { estudiantes, claseActual, identificadorClase, loading: loadingEstudiantes, refetchEstudiantes } = useEstudiantes();
     const [nombre, setNombre] = useState("");
+
+    // Redirigir al panel si no hay clase seleccionada
+    useEffect(() => {
+        if (!claseActual) {
+            router.push('/panel');
+        }
+    }, [claseActual, router]);
 
     const [createEstudiante] = useMutation(CREATE_ESTUDIANTE_MUTATION);
     const [deleteEstudiante, { loading: deletingEstudiante }] = useMutation(DELETE_ESTUDIANTE_MUTATION);
     const [deleteRespuestasEstudiante] = useMutation(DELETE_RESPUESTAS_ESTUDIANTE_MUTATION);
-    const { data: estudiantesData, refetch: refetchEstudiantes } = useQuery(GET_ESTUDIANTES_QUERY, {
-        variables: { claseId },
-        skip: !claseId,
-    });
 
     // Obtener el ID de la última pregunta (una sola vez para toda la página)
     const { data: preguntaData, loading: loadingPregunta } = useQuery(GET_ID_ULTIMA_PREGUNTA_QUERY);
@@ -74,8 +77,8 @@ export default function EstudiantesPage() {
 
     // Obtener el cuestionario actual de la clase (el más reciente, si existe)
     const { data: cuestionariosData } = useQuery(GET_CUESTIONARIOS_QUERY, {
-        variables: { claseId },
-        skip: !claseId,
+        variables: { claseId: claseActual },
+        skip: !claseActual,
     });
     // Buscar el cuestionario más reciente con estado ACTIVA (siempre devolver undefined si no hay ninguno)
     const cuestionarioActual = Array.isArray(cuestionariosData?.cuestionario)
@@ -113,7 +116,7 @@ export default function EstudiantesPage() {
     };
 
     const handleDeleteEstudiante = async (estudianteId: string, nombre: string) => {
-        // Usar toast.confirm en lugar de window.confirm para una mejor experiencia visual
+        // Usar toast.info en lugar de window.confirm para una mejor experiencia visual
         toast.info(
             <div>
                 <p>¿Estás seguro de que deseas eliminar al estudiante <strong>{nombre}</strong>?</p>
@@ -167,8 +170,12 @@ export default function EstudiantesPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!claseActual) {
+            toast.error("No hay clase seleccionada");
+            return;
+        }
         try {
-            await createEstudiante({ variables: { object: { nombre, clase_id: claseId } } });
+            await createEstudiante({ variables: { object: { nombre, clase_id: claseActual } } });
             setNombre("");
             refetchEstudiantes();
             toast.success('Estudiante creado con éxito');
@@ -176,6 +183,10 @@ export default function EstudiantesPage() {
             toast.error("Error al crear el estudiante");
         }
     };
+
+    if (!claseActual) {
+        return <div className="panel-container">Redirigiendo al panel...</div>;
+    }
 
     return (
         <div className="panel-container" style={{ position: 'relative' }}>
@@ -197,7 +208,7 @@ export default function EstudiantesPage() {
                 ❌
             </Link>
             <form onSubmit={handleSubmit} className="panel-form">
-                <h2 className="panel-form-title">Clase {identificador}</h2>
+                <h2 className="panel-form-title">Clase {identificadorClase}</h2>
                 {!cuestionarioActual && (
                     <div style={{ color: '#b71c1c', fontWeight: 600, marginBottom: 8 }}>
                         Sin cuestionario activo
@@ -222,75 +233,79 @@ export default function EstudiantesPage() {
             <p>
                 Pendiente funcionalidad de importar clase entera o importar un alumno existente mediante código de estudiante.
             </p>
-            <ul className="panel-list">
-                {estudiantesData?.estudiante?.map((est: any) => (
-                    <li key={est.id} className="panel-list-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            <strong>🎒{est.nombre}</strong>
-                            <br />
-                            <strong>Código de estudiante:</strong>
-                            <button
-                                type="button"
-                                className="panel-btn panel-btn-gray"
-                                style={{ marginLeft: 8, padding: '2px 10px', fontSize: '0.95em', verticalAlign: 'middle' }}
-                                onClick={() => navigator.clipboard.writeText(est.codigo_estudiante)}
-                                title="Copiar código"
-                            >
-                                📋
-                            </button>
-                            <br />
-                            <span style={{ color: '#666', fontSize: '0.98em', wordBreak: 'break-all', verticalAlign: 'middle' }}>{est.codigo_estudiante}</span>
-                            <EstadoCuestionario 
-                                estudianteId={est.id} 
-                                cuestionarioId={est.cuestionario_id}
-                                ultimaPreguntaId={ultimaPreguntaId}
-                                loadingPregunta={loadingPregunta}
-                            />
-                        </div>
-                        <button className="panel-btn-blue" type="button" style={{ minWidth: 60 }}>
-                            Ver
-                        </button>
-                        {est.cuestionario_id ? (
-                            <button
-                                type="button"
-                                className="panel-btn panel-btn-orange btn-cuestionario"
-                                disabled={updatingCuestionario}
-                                onClick={() => handleDesasignarCuestionario(est.id)}
-                                title="Desasignar cuestionario"
-                            >
-                                Desasignar cuestionario
-                            </button>
-                        ) : (
-                            cuestionarioActual ? (
+            {loadingEstudiantes ? (
+                <div className="loading-indicator">Cargando estudiantes...</div>
+            ) : (
+                <ul className="panel-list">
+                    {estudiantes.map((est: any) => (
+                        <li key={est.id} className="panel-list-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <strong>🎒{est.nombre}</strong>
+                                <br />
+                                <strong>Código de estudiante:</strong>
                                 <button
                                     type="button"
-                                    className="panel-btn btn-cuestionario"
-                                    disabled={updatingCuestionario}
-                                    onClick={() => handleAsignarCuestionario(est.id)}
-                                    title="Asignar cuestionario"
+                                    className="panel-btn panel-btn-gray"
+                                    style={{ marginLeft: 8, padding: '2px 10px', fontSize: '0.95em', verticalAlign: 'middle' }}
+                                    onClick={() => navigator.clipboard.writeText(est.codigo_estudiante)}
+                                    title="Copiar código"
                                 >
-                                    Asignar cuestionario
+                                    📋
                                 </button>
-                            ) : null
-                        )}
-                        <button
-                            type="button"
-                            className="panel-btn panel-btn-red"
-                            onClick={() => handleDeleteEstudiante(est.id, est.nombre)}
-                            disabled={deletingEstudiante}
-                            style={{ minWidth: 70 }}
-                            title="Eliminar estudiante y sus respuestas"
-                        >
-                            {deletingEstudiante ? 'Eliminando...' : 'Eliminar'}
-                        </button>
-                    </li>
-                ))}
-            </ul>
+                                <br />
+                                <span style={{ color: '#666', fontSize: '0.98em', wordBreak: 'break-all', verticalAlign: 'middle' }}>{est.codigo_estudiante}</span>
+                                <EstadoCuestionario 
+                                    estudianteId={est.id} 
+                                    cuestionarioId={est.cuestionario_id}
+                                    ultimaPreguntaId={ultimaPreguntaId}
+                                    loadingPregunta={loadingPregunta}
+                                />
+                            </div>
+                            <button className="panel-btn-blue" type="button" style={{ minWidth: 60 }}>
+                                Ver
+                            </button>
+                            {est.cuestionario_id ? (
+                                <button
+                                    type="button"
+                                    className="panel-btn panel-btn-orange btn-cuestionario"
+                                    disabled={updatingCuestionario}
+                                    onClick={() => handleDesasignarCuestionario(est.id)}
+                                    title="Desasignar cuestionario"
+                                >
+                                    Desasignar cuestionario
+                                </button>
+                            ) : (
+                                cuestionarioActual ? (
+                                    <button
+                                        type="button"
+                                        className="panel-btn btn-cuestionario"
+                                        disabled={updatingCuestionario}
+                                        onClick={() => handleAsignarCuestionario(est.id)}
+                                        title="Asignar cuestionario"
+                                    >
+                                        Asignar cuestionario
+                                    </button>
+                                ) : null
+                            )}
+                            <button
+                                type="button"
+                                className="panel-btn panel-btn-red"
+                                onClick={() => handleDeleteEstudiante(est.id, est.nombre)}
+                                disabled={deletingEstudiante}
+                                style={{ minWidth: 70 }}
+                                title="Eliminar estudiante y sus respuestas"
+                            >
+                                {deletingEstudiante ? 'Eliminando...' : 'Eliminar'}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
             <div style={{ textAlign: 'center', marginTop: 32 }}>
                 <Link href="/panel" className="login-link" style={{ display: 'block', marginTop: 16 }}>
                     Regresar
                 </Link>
             </div>
-    </div>
+        </div>
     );
 }

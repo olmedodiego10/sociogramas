@@ -108,3 +108,13 @@ export const GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY = gql`
     }
   }
 `;
+
+// Obtener el id de la pregunta con tipo_pregunta AFINIDAD_ESTUDIANTE
+export const GET_ID_PREGUNTA_AFINIDAD_ESTUDIANTE_QUERY = gql`
+  query GetIdPreguntaAfinidadEstudiante {
+    pregunta(where: {tipo_pregunta: {_eq: AFINIDAD_ESTUDIANTE}}, limit: 1) {
+      id
+      numero_pregunta
+    }
+  }
+`;

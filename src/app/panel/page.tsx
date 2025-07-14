@@ -7,10 +7,12 @@ import { CREATE_CLASE_MUTATION, CREATE_CUESTIONARIO_MUTATION, UPDATE_CUESTIONARI
 import { GET_CLASES_QUERY, GET_CUESTIONARIOS_QUERY } from "@/graphql/queries";
 import '../sociogramas.css';
 import Link from "next/link";
+import { useEstudiantes } from "@/context/EstudiantesContext";
 
 function Panel() {
   const isMounted = React.useRef(true);
   const router = useRouter();
+  const { setClaseActual } = useEstudiantes();
   const [usuario, setUsuario] = useState<{ id: string; email: string } | null>(null);
   const [showCrearClase, setShowCrearClase] = useState(false);
   const [identificador, setIdentificador] = useState("");
@@ -155,8 +157,9 @@ function Panel() {
               <div style={{ fontWeight: 600, fontSize: '1.15em', marginBottom: 8 }}>{cl.identificador}</div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <Link
-                  href={{ pathname: '/estudiantes', query: { id: cl.id, identificador: cl.identificador } }}
+                  href="/estudiantes"
                   className="panel-btn"
+                  onClick={() => setClaseActual(cl.id, cl.identificador)}
                 >
                   Gestión estudiantes
                 </Link>
@@ -246,17 +249,21 @@ function Panel() {
                 <button
                   type="button"
                   className="panel-btn panel-btn-orange"
-                  // TODO: onClick para grupos
+                  onClick={() => {
+                    setClaseActual(cl.id, cl.identificador);
+                    // TODO: Add groups navigation here when the page is created
+                    router.push('/grupos');
+                  }}
                 >
                   Grupos
                 </button>
-                <button
-                  type="button"
+                <Link
+                  href="/dashboard"
                   className="panel-btn-blue"
-                  // TODO: onClick para dashboard
+                  onClick={() => setClaseActual(cl.id, cl.identificador)}
                 >
                   Dashboard
-                </button>
+                </Link>
                 <button
                   type="button"
                   className="panel-btn panel-btn-red"
