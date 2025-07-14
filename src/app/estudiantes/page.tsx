@@ -10,7 +10,8 @@ import '../sociogramas.css';
 import Link from "next/link";
 
 // Componente para mostrar el estado del cuestionario
-function EstadoCuestionario({ estudianteId, cuestionarioId }: { estudianteId: string, cuestionarioId: string | null }) {
+function EstadoCuestionario({ estudianteId, cuestionarioId, ultimaPreguntaId, loadingPregunta }: 
+    { estudianteId: string, cuestionarioId: string | null, ultimaPreguntaId: string | undefined, loadingPregunta: boolean }) {
     // Si no hay cuestionario asignado, mostramos un mensaje específico
     if (!cuestionarioId) {
         return (
@@ -19,18 +20,15 @@ function EstadoCuestionario({ estudianteId, cuestionarioId }: { estudianteId: st
             </div>
         );
     }
-
-    //Obtener el ID de la última pregunta
-    const { data: preguntaData, loading: loadingPregunta } = useQuery(GET_ID_ULTIMA_PREGUNTA_QUERY);
     
     //Verificar si el estudiante ha respondido esa pregunta
     const { data, loading, error } = useQuery(GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY, {
         variables: { 
             estudiante_id: estudianteId, 
             cuestionario_id: cuestionarioId,
-            pregunta_id: preguntaData?.pregunta?.[0]?.id
+            pregunta_id: ultimaPreguntaId
         },
-        skip: !preguntaData?.pregunta?.[0]?.id, // No ejecutar hasta tener el ID de la pregunta
+        skip: !ultimaPreguntaId, // No ejecutar hasta tener el ID de la pregunta
         fetchPolicy: "cache-and-network"
     });
 
@@ -68,6 +66,10 @@ export default function EstudiantesPage() {
         variables: { claseId },
         skip: !claseId,
     });
+
+    // Obtener el ID de la última pregunta (una sola vez para toda la página)
+    const { data: preguntaData, loading: loadingPregunta } = useQuery(GET_ID_ULTIMA_PREGUNTA_QUERY);
+    const ultimaPreguntaId = preguntaData?.pregunta?.[0]?.id;
 
     // Obtener el cuestionario actual de la clase (el más reciente, si existe)
     const { data: cuestionariosData } = useQuery(GET_CUESTIONARIOS_QUERY, {
@@ -231,7 +233,9 @@ export default function EstudiantesPage() {
                             <span style={{ color: '#666', fontSize: '0.98em', wordBreak: 'break-all', verticalAlign: 'middle' }}>{est.codigo_estudiante}</span>
                             <EstadoCuestionario 
                                 estudianteId={est.id} 
-                                cuestionarioId={est.cuestionario_id} 
+                                cuestionarioId={est.cuestionario_id}
+                                ultimaPreguntaId={ultimaPreguntaId}
+                                loadingPregunta={loadingPregunta}
                             />
                         </div>
                         <button
