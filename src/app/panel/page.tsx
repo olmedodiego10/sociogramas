@@ -257,6 +257,15 @@ function Panel() {
                 >
                   Dashboard
                 </button>
+                <button
+                  type="button"
+                  className="panel-btn panel-btn-red"
+                  style={{ minWidth: 70 }}
+                  title="Eliminar clase"
+                  // TODO: onClick para eliminar clase
+                >
+                  Eliminar
+                </button>
               </div>
             </div>
           </li>

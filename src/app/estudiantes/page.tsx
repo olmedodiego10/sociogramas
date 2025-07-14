@@ -247,15 +247,8 @@ export default function EstudiantesPage() {
                                 loadingPregunta={loadingPregunta}
                             />
                         </div>
-                        <button
-                            type="button"
-                            className="panel-btn panel-btn-red"
-                            onClick={() => handleDeleteEstudiante(est.id, est.nombre)}
-                            disabled={deletingEstudiante}
-                            style={{ minWidth: 70 }}
-                            title="Eliminar estudiante y sus respuestas"
-                        >
-                            {deletingEstudiante ? 'Eliminando...' : 'Eliminar'}
+                        <button className="panel-btn-blue" type="button" style={{ minWidth: 60 }}>
+                            Ver
                         </button>
                         {est.cuestionario_id ? (
                             <button
@@ -280,8 +273,15 @@ export default function EstudiantesPage() {
                                 </button>
                             ) : null
                         )}
-                        <button className="panel-btn-blue" type="button" style={{ minWidth: 60 }}>
-                            Ver
+                        <button
+                            type="button"
+                            className="panel-btn panel-btn-red"
+                            onClick={() => handleDeleteEstudiante(est.id, est.nombre)}
+                            disabled={deletingEstudiante}
+                            style={{ minWidth: 70 }}
+                            title="Eliminar estudiante y sus respuestas"
+                        >
+                            {deletingEstudiante ? 'Eliminando...' : 'Eliminar'}
                         </button>
                     </li>
                 ))}
