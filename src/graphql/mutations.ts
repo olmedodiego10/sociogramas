@@ -50,6 +50,19 @@ export const DELETE_ESTUDIANTE_MUTATION = gql`
   }
 `;
 
+export const DELETE_RESPUESTAS_ESTUDIANTE_MUTATION = gql`
+  mutation DeleteRespuestasEstudiante($estudianteId: uuid!) {
+    delete_respuesta(where: {
+      _or: [
+        {estudiante_id: {_eq: $estudianteId}},
+        {estudiante_evaluado_id: {_eq: $estudianteId}}
+      ]
+    }) {
+      affected_rows
+    }
+  }
+`;
+
 export const CREATE_ESTUDIANTE_MUTATION = gql`
   mutation CreateEstudiante($object: estudiante_insert_input!) {
     insert_estudiante_one(object: $object) {
