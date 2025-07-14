@@ -106,13 +106,12 @@ export const GET_ID_PREGUNTA_AFINIDAD_ESTUDIANTE_QUERY = gql`
   }
 `;
 
-// Obtener respuestas de afinidad para un cuestionario y pregunta específicos
-export const GET_RESPUESTAS_AFINIDAD_QUERY = gql`
-  query GetRespuestasAfinidad($cuestionario_id: uuid!, $pregunta_id: uuid!) {
+// Obtener todas las respuestas para un cuestionario específico
+export const GET_RESPUESTAS_QUERY = gql`
+  query GetRespuestas($cuestionario_id: uuid!) {
     respuesta(
       where: {
-        cuestionario_id: {_eq: $cuestionario_id},
-        pregunta_id: {_eq: $pregunta_id}
+        cuestionario_id: {_eq: $cuestionario_id}
       }
     ) {
       id
@@ -130,6 +129,13 @@ export const GET_RESPUESTAS_AFINIDAD_QUERY = gql`
     opcion_pregunta {
       id
       texto_opcion
+    }
+    
+    # Traemos las preguntas para identificar las de afinidad
+    pregunta {
+      id
+      numero_pregunta
+      tipo_pregunta
     }
   }
 `;
