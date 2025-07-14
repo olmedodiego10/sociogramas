@@ -96,6 +96,44 @@ export const GET_ID_ULTIMA_PREGUNTA_QUERY = gql`
   }
 `;
 
+// Obtener el id de la pregunta con tipo_pregunta AFINIDAD_ESTUDIANTE
+export const GET_ID_PREGUNTA_AFINIDAD_ESTUDIANTE_QUERY = gql`
+  query GetIdPreguntaAfinidadEstudiante {
+    pregunta(where: {tipo_pregunta: {_eq: AFINIDAD_ESTUDIANTE}}, limit: 1) {
+      id
+      numero_pregunta
+    }
+  }
+`;
+
+// Obtener respuestas de afinidad para un cuestionario y pregunta específicos
+export const GET_RESPUESTAS_AFINIDAD_QUERY = gql`
+  query GetRespuestasAfinidad($cuestionario_id: uuid!, $pregunta_id: uuid!) {
+    respuesta(
+      where: {
+        cuestionario_id: {_eq: $cuestionario_id},
+        pregunta_id: {_eq: $pregunta_id}
+      }
+    ) {
+      id
+      estudiante_id
+      estudiante_evaluado_id
+      opcion_pregunta_id
+      otro_texto
+      created_at
+      updated_at
+      cuestionario_id
+      pregunta_id
+    }
+    
+    # Traemos todas las opciones de pregunta para hacer el join en el frontend
+    opcion_pregunta {
+      id
+      texto_opcion
+    }
+  }
+`;
+
 // Verificar si el estudiante completó el cuestionario
 export const GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY = gql`
   query GetEstadoCuestionarioEstudiante($estudiante_id: uuid!, $cuestionario_id: uuid!, $pregunta_id: uuid!) {
@@ -105,16 +143,6 @@ export const GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY = gql`
       pregunta_id: {_eq: $pregunta_id}
     }, limit: 1) {
       id
-    }
-  }
-`;
-
-// Obtener el id de la pregunta con tipo_pregunta AFINIDAD_ESTUDIANTE
-export const GET_ID_PREGUNTA_AFINIDAD_ESTUDIANTE_QUERY = gql`
-  query GetIdPreguntaAfinidadEstudiante {
-    pregunta(where: {tipo_pregunta: {_eq: AFINIDAD_ESTUDIANTE}}, limit: 1) {
-      id
-      numero_pregunta
     }
   }
 `;

@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useMutation, useQuery } from "@apollo/client";
 import { CREATE_ESTUDIANTE_MUTATION, UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION, DELETE_ESTUDIANTE_MUTATION, DELETE_RESPUESTAS_ESTUDIANTE_MUTATION } from "@/graphql/mutations";
-import { GET_CUESTIONARIOS_QUERY, GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY, GET_ID_ULTIMA_PREGUNTA_QUERY } from "@/graphql/queries";
+import { GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY, GET_ID_ULTIMA_PREGUNTA_QUERY } from "@/graphql/queries";
 import '../sociogramas.css';
 import Link from "next/link";
 import { useEstudiantes } from "@/context/EstudiantesContext";
@@ -57,7 +57,15 @@ function EstadoCuestionario({ estudianteId, cuestionarioId, ultimaPreguntaId, lo
 
 export default function EstudiantesPage() {
     const router = useRouter();
-    const { estudiantes, claseActual, identificadorClase, loading: loadingEstudiantes, refetchEstudiantes } = useEstudiantes();
+    const { 
+        estudiantes, 
+        claseActual, 
+        identificadorClase, 
+        loading: loadingEstudiantes, 
+        refetchEstudiantes, 
+        cuestionarioActual,
+        loadingCuestionario
+    } = useEstudiantes();
     const [nombre, setNombre] = useState("");
 
     // Redirigir al panel si no hay clase seleccionada
@@ -74,16 +82,6 @@ export default function EstudiantesPage() {
     // Obtener el ID de la última pregunta (una sola vez para toda la página)
     const { data: preguntaData, loading: loadingPregunta } = useQuery(GET_ID_ULTIMA_PREGUNTA_QUERY);
     const ultimaPreguntaId = preguntaData?.pregunta?.[0]?.id;
-
-    // Obtener el cuestionario actual de la clase (el más reciente, si existe)
-    const { data: cuestionariosData } = useQuery(GET_CUESTIONARIOS_QUERY, {
-        variables: { claseId: claseActual },
-        skip: !claseActual,
-    });
-    // Buscar el cuestionario más reciente con estado ACTIVA (siempre devolver undefined si no hay ninguno)
-    const cuestionarioActual = Array.isArray(cuestionariosData?.cuestionario)
-        ? cuestionariosData.cuestionario.find((c: any) => c && c.estado === "ACTIVA")
-        : undefined;
 
     const [updateEstudianteCuestionario, { loading: updatingCuestionario }] = useMutation(UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION);
 
@@ -209,9 +207,17 @@ export default function EstudiantesPage() {
             </Link>
             <form onSubmit={handleSubmit} className="panel-form">
                 <h2 className="panel-form-title">Clase {identificadorClase}</h2>
-                {!cuestionarioActual && (
+                {loadingCuestionario ? (
+                    <div style={{ color: '#666', fontWeight: 600, marginBottom: 8 }}>
+                        Cargando cuestionario...
+                    </div>
+                ) : !cuestionarioActual ? (
                     <div style={{ color: '#b71c1c', fontWeight: 600, marginBottom: 8 }}>
                         Sin cuestionario activo
+                    </div>
+                ) : (
+                    <div style={{ color: '#2e7d32', fontWeight: 600, marginBottom: 8 }}>
+                        Cuestionario activo
                     </div>
                 )}
                 <input
@@ -268,7 +274,7 @@ export default function EstudiantesPage() {
                                 <button
                                     type="button"
                                     className="panel-btn panel-btn-orange btn-cuestionario"
-                                    disabled={updatingCuestionario}
+                                    disabled={updatingCuestionario || loadingCuestionario}
                                     onClick={() => handleDesasignarCuestionario(est.id)}
                                     title="Desasignar cuestionario"
                                 >
@@ -279,7 +285,7 @@ export default function EstudiantesPage() {
                                     <button
                                         type="button"
                                         className="panel-btn btn-cuestionario"
-                                        disabled={updatingCuestionario}
+                                        disabled={updatingCuestionario || loadingCuestionario}
                                         onClick={() => handleAsignarCuestionario(est.id)}
                                         title="Asignar cuestionario"
                                     >
