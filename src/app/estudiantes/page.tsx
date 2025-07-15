@@ -190,17 +190,7 @@ export default function EstudiantesPage() {
         <div className="panel-container" style={{ position: 'relative' }}>
             <Link
                 href="/panel"
-                className="login-link"
-                style={{
-                    position: 'absolute',
-                    top: 18,
-                    right: 24,
-                    fontSize: '1.5em',
-                    textDecoration: 'none',
-                    color: '#b71c1c',
-                    zIndex: 2,
-                    fontWeight: 700
-                }}
+                className="login-link dashboard-close-btn"
                 title="Cerrar y volver al panel"
             >
                 ❌
