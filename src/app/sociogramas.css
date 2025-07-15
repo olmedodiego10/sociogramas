@@ -1031,7 +1031,7 @@ details[open] > .afinidad-details-summary:before {
 .respuestas-table td {
   padding: 12px 15px;
   border-bottom: 1px solid #eee;
-  vertical-align: middle;
+  vertical-align: top;
 }
 
 .respuestas-table tbody tr:hover {
@@ -1056,6 +1056,7 @@ details[open] > .afinidad-details-summary:before {
   .respuestas-table th,
   .respuestas-table td {
     padding: 8px;
+    vertical-align: top;
   }
   
   .estadistica-box {
