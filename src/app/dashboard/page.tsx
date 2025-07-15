@@ -6,8 +6,7 @@ import '../sociogramas.css';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEstudiantes } from "@/context/EstudiantesContext";
-import { useQuery } from "@apollo/client";
-import { GET_RESPUESTAS_QUERY } from "@/graphql/queries";
+import { useRespuestas } from "@/context/RespuestasContext";
 
 // Funciones utilitarias para el manejo de opciones
 const getOptionIcon = (texto: string) => {
@@ -39,6 +38,14 @@ export default function DashboardPage() {
         loadingCuestionario 
     } = useEstudiantes();
     
+    const {
+        respuestasData,
+        loading: loadingRespuestas,
+        error: respuestasError,
+        setCuestionarioActual,
+        refetchRespuestas
+    } = useRespuestas();
+    
     // Estados para almacenar datos filtrados
     const [idPreguntaAfinidad, setIdPreguntaAfinidad] = useState<string | null>(null);
     const [respuestasAfinidad, setRespuestasAfinidad] = useState<any[]>([]);
@@ -53,18 +60,11 @@ export default function DashboardPage() {
         total: 0
     });
     
-    // Consulta para obtener todas las respuestas del cuestionario
-    const {
-        data: respuestasData,
-        loading: loadingRespuestas,
-        error: respuestasError,
-        refetch: refetchRespuestas
-    } = useQuery(GET_RESPUESTAS_QUERY, {
-        variables: {
-            cuestionario_id: cuestionarioActual?.id
-        },
-        skip: !cuestionarioActual?.id
-    });
+    // Efecto para establecer el cuestionario actual en el contexto de respuestas
+    useEffect(() => {
+        const cuestionarioId = cuestionarioActual?.id || null;
+        setCuestionarioActual(cuestionarioId);
+    }, [cuestionarioActual?.id, setCuestionarioActual]);
 
     // Filtrar respuestas de afinidad y otras
     useEffect(() => {
@@ -131,10 +131,21 @@ export default function DashboardPage() {
                     total: 0
                 });
             }
+        } else if (respuestasError) {
+            // Si hay error, reiniciar estados
+            setIdPreguntaAfinidad(null);
+            setRespuestasAfinidad([]);
+            setContadorRespuestas({
+                verde: 0,
+                amarillo: 0,
+                rojo: 0,
+                blanco: 0,
+                total: 0
+            });
         }
         
         setLoadingPreguntaAfinidad(false);
-    }, [respuestasData, respuestasError]);
+    }, [respuestasData]);
 
     // Redirigir al panel si no hay clase seleccionada
     useEffect(() => {
