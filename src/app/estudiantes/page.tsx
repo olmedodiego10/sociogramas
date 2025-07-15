@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useMutation, useQuery } from "@apollo/client";
 import { CREATE_ESTUDIANTE_MUTATION, UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION, DELETE_ESTUDIANTE_MUTATION, DELETE_RESPUESTAS_ESTUDIANTE_MUTATION } from "@/graphql/mutations";
-import { GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY, GET_ID_ULTIMA_PREGUNTA_QUERY } from "@/graphql/queries";
+import { GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY } from "@/graphql/queries";
 import '../sociogramas.css';
 import Link from "next/link";
 import { useEstudiantes } from "@/context/EstudiantesContext";
@@ -64,7 +64,9 @@ export default function EstudiantesPage() {
         loading: loadingEstudiantes, 
         refetchEstudiantes, 
         cuestionarioActual,
-        loadingCuestionario
+        loadingCuestionario,
+        ultimaPreguntaId,
+        loadingUltimaPregunta
     } = useEstudiantes();
     const [nombre, setNombre] = useState("");
 
@@ -78,10 +80,6 @@ export default function EstudiantesPage() {
     const [createEstudiante] = useMutation(CREATE_ESTUDIANTE_MUTATION);
     const [deleteEstudiante, { loading: deletingEstudiante }] = useMutation(DELETE_ESTUDIANTE_MUTATION);
     const [deleteRespuestasEstudiante] = useMutation(DELETE_RESPUESTAS_ESTUDIANTE_MUTATION);
-
-    // Obtener el ID de la última pregunta (una sola vez para toda la página)
-    const { data: preguntaData, loading: loadingPregunta } = useQuery(GET_ID_ULTIMA_PREGUNTA_QUERY);
-    const ultimaPreguntaId = preguntaData?.pregunta?.[0]?.id;
 
     const [updateEstudianteCuestionario, { loading: updatingCuestionario }] = useMutation(UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION);
 
@@ -254,7 +252,7 @@ export default function EstudiantesPage() {
                                     estudianteId={est.id} 
                                     cuestionarioId={est.cuestionario_id}
                                     ultimaPreguntaId={ultimaPreguntaId}
-                                    loadingPregunta={loadingPregunta}
+                                    loadingPregunta={loadingUltimaPregunta}
                                 />
                             </div>
                             <button className="panel-btn-blue" type="button" style={{ minWidth: 60 }}>

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
-import { useLazyQuery } from '@apollo/client';
-import { GET_RESPUESTAS_QUERY } from '@/graphql/queries';
+import { useLazyQuery, useQuery } from '@apollo/client';
+import { GET_RESPUESTAS_QUERY, GET_ID_PREGUNTA_AFINIDAD_ESTUDIANTE_QUERY } from '@/graphql/queries';
 
 // Define the context type
 type RespuestasContextType = {
@@ -10,6 +10,8 @@ type RespuestasContextType = {
   loading: boolean;
   error: any;
   cuestionarioActual: string | null;
+  idPreguntaAfinidad: string | null;
+  loadingPreguntaAfinidad: boolean;
   setCuestionarioActual: (cuestionarioId: string | null) => void;
   refetchRespuestas: () => Promise<void>;
 };
@@ -20,6 +22,8 @@ const RespuestasContext = createContext<RespuestasContextType>({
   loading: false,
   error: null,
   cuestionarioActual: null,
+  idPreguntaAfinidad: null,
+  loadingPreguntaAfinidad: false,
   setCuestionarioActual: () => {},
   refetchRespuestas: async () => {},
 });
@@ -35,6 +39,16 @@ export function RespuestasProvider({ children }: { children: ReactNode }) {
   const [fetchRespuestas, { data: respuestasData, loading, error, refetch }] = useLazyQuery(GET_RESPUESTAS_QUERY, {
     fetchPolicy: 'network-only',
   });
+
+  // Consulta para obtener el ID de la pregunta de afinidad (una sola vez para toda la aplicación)
+  const { 
+    data: preguntaAfinidadData, 
+    loading: loadingPreguntaAfinidad 
+  } = useQuery(GET_ID_PREGUNTA_AFINIDAD_ESTUDIANTE_QUERY, {
+    fetchPolicy: 'cache-first', // Cache first para evitar requests innecesarios
+  });
+
+  const idPreguntaAfinidad = preguntaAfinidadData?.pregunta?.[0]?.id || null;
 
   // Set cuestionario ID and fetch responses
   const setCuestionarioActual = useCallback((cuestionarioId: string | null) => {
@@ -57,9 +71,11 @@ export function RespuestasProvider({ children }: { children: ReactNode }) {
     loading,
     error,
     cuestionarioActual,
+    idPreguntaAfinidad,
+    loadingPreguntaAfinidad,
     setCuestionarioActual,
     refetchRespuestas,
-  }), [respuestasData, loading, error, cuestionarioActual, setCuestionarioActual, refetchRespuestas]);
+  }), [respuestasData, loading, error, cuestionarioActual, idPreguntaAfinidad, loadingPreguntaAfinidad, setCuestionarioActual, refetchRespuestas]);
 
   return (
     <RespuestasContext.Provider value={value}>

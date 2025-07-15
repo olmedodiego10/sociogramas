@@ -43,13 +43,13 @@ export default function DashboardPage() {
         loading: loadingRespuestas,
         error: respuestasError,
         setCuestionarioActual,
-        refetchRespuestas
+        refetchRespuestas,
+        idPreguntaAfinidad,
+        loadingPreguntaAfinidad
     } = useRespuestas();
     
     // Estados para almacenar datos filtrados
-    const [idPreguntaAfinidad, setIdPreguntaAfinidad] = useState<string | null>(null);
     const [respuestasAfinidad, setRespuestasAfinidad] = useState<any[]>([]);
-    const [loadingPreguntaAfinidad, setLoadingPreguntaAfinidad] = useState<boolean>(true);
     
     // Estados para las estadísticas de tipos de respuestas
     const [contadorRespuestas, setContadorRespuestas] = useState({
@@ -68,72 +68,49 @@ export default function DashboardPage() {
 
     // Filtrar respuestas de afinidad y otras
     useEffect(() => {
-        setLoadingPreguntaAfinidad(true);
-        
-        if (respuestasData) {
-            // Buscar la pregunta de tipo AFINIDAD_ESTUDIANTE
-            const preguntaAfinidad = respuestasData.pregunta?.find(
-                (p: any) => p.tipo_pregunta === 'AFINIDAD_ESTUDIANTE'
-            );
+        if (respuestasData && idPreguntaAfinidad) {
+            // Filtrar las respuestas por el ID de la pregunta de afinidad
+            const respuestasDeAfinidad = respuestasData.respuesta?.filter(
+                (r: any) => r.pregunta_id === idPreguntaAfinidad
+            ) || [];
             
-            if (preguntaAfinidad) {
-                setIdPreguntaAfinidad(preguntaAfinidad.id);
-                
-                // Filtrar las respuestas por el ID de la pregunta de afinidad
-                const respuestasDeAfinidad = respuestasData.respuesta?.filter(
-                    (r: any) => r.pregunta_id === preguntaAfinidad.id
-                ) || [];
-                
-                // Actualizar estado con las respuestas de afinidad
-                setRespuestasAfinidad(respuestasDeAfinidad);
-                
-                // Contar respuestas por tipo (verde, amarillo, rojo, blanco)
-                if (respuestasData.opcion_pregunta && Array.isArray(respuestasData.opcion_pregunta)) {
-                    const contadores = {
-                        verde: 0,
-                        amarillo: 0,
-                        rojo: 0,
-                        blanco: 0,
-                        total: respuestasDeAfinidad.length
-                    };
-                    
-                    respuestasDeAfinidad.forEach((resp: any) => {
-                        const opcion = respuestasData.opcion_pregunta.find(
-                            (op: any) => op.id === resp.opcion_pregunta_id
-                        );
-                        
-                        if (opcion && opcion.texto_opcion) {
-                            const textoLowerCase = opcion.texto_opcion.toLowerCase();
-                            
-                            if (textoLowerCase.includes('verde')) {
-                                contadores.verde += 1;
-                            } else if (textoLowerCase.includes('amarillo')) {
-                                contadores.amarillo += 1;
-                            } else if (textoLowerCase.includes('rojo')) {
-                                contadores.rojo += 1;
-                            } else if (textoLowerCase.includes('blanco')) {
-                                contadores.blanco += 1;
-                            }
-                        }
-                    });
-                    
-                    setContadorRespuestas(contadores);
-                }
-            } else {
-                setIdPreguntaAfinidad(null);
-                setRespuestasAfinidad([]);
-                // Reiniciar contadores
-                setContadorRespuestas({
+            // Actualizar estado con las respuestas de afinidad
+            setRespuestasAfinidad(respuestasDeAfinidad);
+            
+            // Contar respuestas por tipo (verde, amarillo, rojo, blanco)
+            if (respuestasData.opcion_pregunta && Array.isArray(respuestasData.opcion_pregunta)) {
+                const contadores = {
                     verde: 0,
                     amarillo: 0,
                     rojo: 0,
                     blanco: 0,
-                    total: 0
+                    total: respuestasDeAfinidad.length
+                };
+                
+                respuestasDeAfinidad.forEach((resp: any) => {
+                    const opcion = respuestasData.opcion_pregunta.find(
+                        (op: any) => op.id === resp.opcion_pregunta_id
+                    );
+                    
+                    if (opcion && opcion.texto_opcion) {
+                        const textoLowerCase = opcion.texto_opcion.toLowerCase();
+                        
+                        if (textoLowerCase.includes('verde')) {
+                            contadores.verde += 1;
+                        } else if (textoLowerCase.includes('amarillo')) {
+                            contadores.amarillo += 1;
+                        } else if (textoLowerCase.includes('rojo')) {
+                            contadores.rojo += 1;
+                        } else if (textoLowerCase.includes('blanco')) {
+                            contadores.blanco += 1;
+                        }
+                    }
                 });
+                
+                setContadorRespuestas(contadores);
             }
-        } else if (respuestasError) {
-            // Si hay error, reiniciar estados
-            setIdPreguntaAfinidad(null);
+        } else if (respuestasError || !idPreguntaAfinidad) {
+            // Si hay error o no hay pregunta de afinidad, reiniciar estados
             setRespuestasAfinidad([]);
             setContadorRespuestas({
                 verde: 0,
@@ -143,9 +120,7 @@ export default function DashboardPage() {
                 total: 0
             });
         }
-        
-        setLoadingPreguntaAfinidad(false);
-    }, [respuestasData]);
+    }, [respuestasData, idPreguntaAfinidad, respuestasError]);
 
     // Redirigir al panel si no hay clase seleccionada
     useEffect(() => {
