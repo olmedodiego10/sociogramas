@@ -193,8 +193,8 @@ export default function EstudiantesPage() {
             >
                 ❌
             </Link>
+            <h2 className="panel-form-title">Clase {identificadorClase}</h2>
             <form onSubmit={handleSubmit} className="panel-form">
-                <h2 className="panel-form-title">Clase {identificadorClase}</h2>
                 {loadingCuestionario ? (
                     <div style={{ color: '#666', fontWeight: 600, marginBottom: 8 }}>
                         Cargando cuestionario...

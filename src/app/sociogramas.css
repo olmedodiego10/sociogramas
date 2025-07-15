@@ -1145,3 +1145,11 @@ details[open] > .evaluaciones-summary:before {
 .evaluaciones-subtabla tbody tr:hover {
   background-color: #f9f9f9;
 }
+
+.panel-description h3 {
+  color: #4CAF50;
+  font-weight: 600;
+  margin-bottom: 16px;
+  font-size: 1.3em;
+  text-align: center;
+}

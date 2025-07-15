@@ -106,8 +106,7 @@ function Panel() {
   };
 
   return (
-      <div className="panel-container">
-      <h2 className="panel-form-title">Panel de gestión de sociogramas</h2>
+    <>
       {usuario && (
         <div className="panel-user-bar">
           <span className="panel-user-email">
@@ -118,9 +117,24 @@ function Panel() {
           </button>
         </div>
       )}
-      <p className="panel-description">
-        Descripción pendiente.
-      </p>
+      <div className="panel-container">
+        <h2 className="panel-form-title">Panel de gestión de sociogramas</h2>
+        <div className="panel-description">
+        <p>¡Bienvenido al panel principal de gestión de tu clase! 🚀</p>
+        <p>Aquí podrás controlar todos los aspectos de tu curso de manera sencilla.</p>
+        
+        <p><strong>Crear clase:</strong> Inicia una nueva clase desde cero. ➕</p>
+        
+        <p><strong>Gestión estudiantes:</strong> Administra la lista de tus estudiantes: añade, edita o elimina sus perfiles. 🧑‍🎓</p>
+        
+        <p><strong>Abrir/Cerrar cuestionario:</strong> Controla la disponibilidad de un cuestionario para tus estudiantes. 📝</p>
+        
+        <p><strong>Grupos:</strong> Organiza a tus estudiantes en grupos para actividades o proyectos específicos. 🤝</p>
+        
+        <p><strong>Dashboard:</strong> Accede a un resumen visual del progreso de tu clase. 📊</p>
+        
+        <p><strong>Eliminar:</strong> Borra la clase seleccionada. 🗑️</p>
+      </div>
       <button
         className="panel-btn"
         style={{ margin: '24px auto 0', display: 'block' }}
@@ -279,6 +293,7 @@ function Panel() {
         ))}
       </ul>
     </div>
+    </>
   );
 }
 export default Panel;
