@@ -327,7 +327,7 @@ export default function CuestionarioEstudiante() {
             estudiante_id: estudianteQueResponde.id,
             pregunta_id: preguntaActual.id,
             estudiante_evaluado_id: estudianteId,
-            opcion_pregunta_id: null, // Valor nulo según los nuevos requisitos
+            opcion_pregunta_id: null, // Valor nulo según los nuevos requisitos ya que la respuesta es un estudiante
             otro_texto: null, // No hay texto adicional para estas preguntas
           },
         });

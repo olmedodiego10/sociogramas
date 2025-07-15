@@ -17,13 +17,7 @@
   width: 100%;
   display: block;
 }
-.panel-clase-id {
-  font-size: 0.7em;
-  color: #1db954;
-  font-weight: 400;
-  margin-top: 4px;
-  margin-bottom: 0;
-}
+
 .panel-btn.panel-btn-gray {
   background: #9e9e9e;
   color: #fff;
@@ -390,11 +384,7 @@ body {
   box-shadow: 0 5px 15px rgba(183, 28, 28, 0.3);
 }
 
-.panel-description {
-  text-align: center;
-  color: #333;
-  margin-bottom: 32px;
-}
+
 
 .login-estudiantes {
   text-align: center;
@@ -732,21 +722,37 @@ body {
 .opcion-verde {
   color: green;
   font-weight: 600;
+  background-color: #e8f5e9;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 .opcion-amarillo {
   color: #e6c200;
   font-weight: 600;
+  background-color: #fffde7;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 .opcion-rojo {
   color: red;
   font-weight: 600;
+  background-color: #ffebee;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 .opcion-blanco {
   color: black;
   font-weight: 700;
+  background-color: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
 }
 
 .cuestionario-separador {
@@ -819,32 +825,30 @@ body {
   border-bottom: 1px solid #eee;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .student-name {
   font-weight: 500;
+  display: block;
+  margin-bottom: 4px;
 }
 
-.student-has-questionnaire {
-  font-size: 0.9em;
-  background-color: #f1f8e9;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
-.panel-loading-info {
+.student-code {
+  font-size: 0.8em;
   color: #666;
-  font-style: italic;
+  margin-top: 2px;
 }
 
-.panel-no-cuestionario {
-  color: #b71c1c;
+.code-value {
+  font-family: monospace;
+  background-color: #f5f5f5;
+  padding: 2px 4px;
+  border-radius: 3px;
+  border: 1px solid #e0e0e0;
 }
 
-.panel-cuestionario-id {
-  color: #2e7d32;
-}
+
 
 /* Estilos para la sección de afinidad */
 .afinidad-info-container {
@@ -855,18 +859,7 @@ body {
   border: 1px solid #ddd;
 }
 
-.afinidad-heading {
-  margin: 0 0 10px 0;
-  color: #2c3e50;
-}
 
-.afinidad-id-badge {
-  background-color: #e8f5e9;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 0.9em;
-}
 
 .afinidad-error-container {
   color: #d32f2f;
@@ -886,36 +879,42 @@ body {
   cursor: pointer;
 }
 
-.afinidad-count {
-  background-color: #e8f5e9;
-  padding: 2px 8px;
-  border-radius: 4px;
-  margin-left: 5px;
-  font-weight: bold;
-}
 
-.afinidad-empty-count {
-  background-color: #ffebee;
-  padding: 2px 8px;
-  border-radius: 4px;
-  margin-left: 5px;
-  font-weight: bold;
-}
 
-.afinidad-refresh-btn {
-  margin-left: 10px;
-  padding: 2px 8px;
-  background-color: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.8em;
-}
+
+
+
 
 .afinidad-details-summary {
   cursor: pointer;
   font-weight: bold;
   color: #1976d2;
+  list-style: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Safari y navegadores basados en WebKit */
+.afinidad-details-summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Firefox y otros */
+.afinidad-details-summary::marker {
+  display: none;
+}
+
+.afinidad-details-summary:before {
+  content: '▶';
+  margin-right: 6px;
+  font-size: 0.8em;
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+details[open] > .afinidad-details-summary:before {
+  content: '▼';
 }
 
 .afinidad-details-content {
@@ -928,62 +927,220 @@ body {
   border: 1px solid #e0e0e0;
 }
 
-.respuestas-counter {
-  margin-bottom: 15px;
-  padding: 12px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
+/* Estilos para estadísticas de respuestas */
+.estadisticas-container {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin: 20px 0;
 }
 
-.respuestas-counter p {
-  margin: 0;
-  font-size: 1em;
+.estadistica-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  padding: 12px;
+  transition: transform 0.2s;
+}
+
+.estadistica-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+.estadistica-icono {
+  font-size: 1.8em;
+  margin-bottom: 5px;
+}
+
+.estadistica-numero {
+  font-size: 2em;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.estadistica-etiqueta {
+  font-size: 0.85em;
+  color: #555;
+}
+
+.estadistica-porcentaje {
+  font-size: 0.8em;
+  color: #777;
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+.estadistica-verde {
+  background-color: #c8e6c9;
+  border: 2px solid #4caf50;
+  box-shadow: 0 3px 8px rgba(76, 175, 80, 0.2);
+}
+
+.estadistica-amarillo {
+  background-color: #fff9c4;
+  border: 2px solid #ffeb3b;
+  box-shadow: 0 3px 8px rgba(255, 235, 59, 0.2);
+}
+
+.estadistica-rojo {
+  background-color: #ffcdd2;
+  border: 2px solid #f44336;
+  box-shadow: 0 3px 8px rgba(244, 67, 54, 0.2);
+}
+
+.estadistica-blanco {
+  background-color: #f5f5f5;
+  border: 2px solid #9e9e9e;
+  box-shadow: 0 3px 8px rgba(158, 158, 158, 0.2);
+}
+
+/* Estilos para la tabla de respuestas */
+.respuestas-table-container {
+  margin-top: 15px;
+  width: 100%;
+  overflow-x: auto;
 }
 
 .respuestas-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.respuestas-table thead {
+  background-color: #f2f2f2;
 }
 
 .respuestas-table th {
-  padding: 8px;
+  padding: 12px 15px;
   text-align: left;
+  font-weight: 600;
+  color: #333;
   border-bottom: 2px solid #ddd;
-  background-color: #f1f8e9;
 }
 
 .respuestas-table td {
-  padding: 8px;
-  vertical-align: top;
+  padding: 12px 15px;
   border-bottom: 1px solid #eee;
+  vertical-align: middle;
 }
 
-.opcion-badge {
-  background-color: #e3f2fd;
-  padding: 4px 8px;
-  border-radius: 4px;
-  display: inline-block;
+.respuestas-table tbody tr:hover {
+  background-color: #f9f9f9;
 }
 
-.comentario-texto {
-  font-style: italic;
-  color: #555;
-}
-
-.comentario-vacio {
-  color: #999;
+.respuestas-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .estudiante-desconocido {
-  color: #999;
+  color: #d32f2f;
+  font-style: italic;
 }
 
-.cuestionario-stats {
-  margin-bottom: 16px;
+/* Mejorar diseño responsive para la tabla */
+@media (max-width: 768px) {
+  .respuestas-table {
+    font-size: 0.9em;
+  }
+  
+  .respuestas-table th,
+  .respuestas-table td {
+    padding: 8px;
+  }
+  
+  .estadistica-box {
+    width: 90px;
+    height: 90px;
+  }
 }
 
-.footer-nav {
+/* Estilo para mensaje cuando no hay respuestas */
+.no-respuestas-mensaje {
+  padding: 15px;
+  background-color: #f5f5f5;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  margin-top: 15px;
   text-align: center;
-  margin-top: 32px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Estilos para la nueva estructura agrupada de evaluaciones */
+.evaluaciones-summary {
+  cursor: pointer;
+  font-weight: bold;
+  color: #1976d2;
+  padding: 6px 0;
+  list-style: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Safari y navegadores basados en WebKit */
+.evaluaciones-summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Firefox y otros */
+.evaluaciones-summary::marker {
+  display: none;
+}
+
+.evaluaciones-summary:before {
+  content: '▶';
+  margin-right: 6px;
+  font-size: 0.8em;
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+details[open] > .evaluaciones-summary:before {
+  content: '▼';
+}
+
+.evaluaciones-lista {
+  margin-top: 10px;
+  padding: 8px;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  border: 1px solid #e0e0e0;
+}
+
+.evaluaciones-subtabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 5px;
+}
+
+.evaluaciones-subtabla th {
+  background-color: #f2f2f2;
+  padding: 8px;
+  text-align: left;
+  font-size: 0.9em;
+  border-bottom: 1px solid #ddd;
+}
+
+.evaluaciones-subtabla td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.evaluaciones-subtabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.evaluaciones-subtabla tbody tr:hover {
+  background-color: #f9f9f9;
 }

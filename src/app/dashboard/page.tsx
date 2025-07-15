@@ -9,6 +9,25 @@ import { useEstudiantes } from "@/context/EstudiantesContext";
 import { useQuery } from "@apollo/client";
 import { GET_RESPUESTAS_QUERY } from "@/graphql/queries";
 
+// Funciones utilitarias para el manejo de opciones
+const getOptionIcon = (texto: string) => {
+    const textoLowerCase = texto.toLowerCase();
+    if (textoLowerCase.includes('verde')) return '🟩';
+    if (textoLowerCase.includes('amarillo')) return '🟨';
+    if (textoLowerCase.includes('rojo')) return '🟥';
+    if (textoLowerCase.includes('blanco')) return '⚪';
+    return '';
+};
+
+const getOptionClass = (texto: string) => {
+    const textoLowerCase = texto.toLowerCase();
+    if (textoLowerCase.includes('verde')) return 'opcion-verde';
+    if (textoLowerCase.includes('amarillo')) return 'opcion-amarillo';
+    if (textoLowerCase.includes('rojo')) return 'opcion-rojo';
+    if (textoLowerCase.includes('blanco')) return 'opcion-blanco';
+    return 'opcion-badge';
+};
+
 export default function DashboardPage() {
     const router = useRouter();
     const { 
@@ -24,6 +43,15 @@ export default function DashboardPage() {
     const [idPreguntaAfinidad, setIdPreguntaAfinidad] = useState<string | null>(null);
     const [respuestasAfinidad, setRespuestasAfinidad] = useState<any[]>([]);
     const [loadingPreguntaAfinidad, setLoadingPreguntaAfinidad] = useState<boolean>(true);
+    
+    // Estados para las estadísticas de tipos de respuestas
+    const [contadorRespuestas, setContadorRespuestas] = useState({
+        verde: 0,
+        amarillo: 0,
+        rojo: 0,
+        blanco: 0,
+        total: 0
+    });
     
     // Consulta para obtener todas las respuestas del cuestionario
     const {
@@ -43,15 +71,12 @@ export default function DashboardPage() {
         setLoadingPreguntaAfinidad(true);
         
         if (respuestasData) {
-            console.log('Datos de respuestas:', respuestasData);
-            
             // Buscar la pregunta de tipo AFINIDAD_ESTUDIANTE
             const preguntaAfinidad = respuestasData.pregunta?.find(
                 (p: any) => p.tipo_pregunta === 'AFINIDAD_ESTUDIANTE'
             );
             
             if (preguntaAfinidad) {
-                console.log('Pregunta de afinidad encontrada:', preguntaAfinidad);
                 setIdPreguntaAfinidad(preguntaAfinidad.id);
                 
                 // Filtrar las respuestas por el ID de la pregunta de afinidad
@@ -59,42 +84,53 @@ export default function DashboardPage() {
                     (r: any) => r.pregunta_id === preguntaAfinidad.id
                 ) || [];
                 
-                // Filtrar las respuestas que NO son de afinidad
-                const otrasRespuestas = respuestasData.respuesta?.filter(
-                    (r: any) => r.pregunta_id !== preguntaAfinidad.id
-                ) || [];
-                
-                console.log('Respuestas de afinidad:', respuestasDeAfinidad);
-                console.log('Otras respuestas (sólo consola):', otrasRespuestas);
-                
                 // Actualizar estado con las respuestas de afinidad
                 setRespuestasAfinidad(respuestasDeAfinidad);
                 
-                // Verificar opciones de pregunta
-                if (respuestasData.opcion_pregunta && respuestasData.opcion_pregunta.length > 0) {
-                    console.log('Ejemplo de opcion_pregunta:', respuestasData.opcion_pregunta[0]);
+                // Contar respuestas por tipo (verde, amarillo, rojo, blanco)
+                if (respuestasData.opcion_pregunta && Array.isArray(respuestasData.opcion_pregunta)) {
+                    const contadores = {
+                        verde: 0,
+                        amarillo: 0,
+                        rojo: 0,
+                        blanco: 0,
+                        total: respuestasDeAfinidad.length
+                    };
                     
-                    // Probar el join con la primera respuesta de afinidad si existe
-                    if (respuestasDeAfinidad.length > 0) {
-                        const primeraRespuesta = respuestasDeAfinidad[0];
-                        const opcionEncontrada = respuestasData.opcion_pregunta.find(
-                            (op: any) => op.id === primeraRespuesta.opcion_pregunta_id
+                    respuestasDeAfinidad.forEach((resp: any) => {
+                        const opcion = respuestasData.opcion_pregunta.find(
+                            (op: any) => op.id === resp.opcion_pregunta_id
                         );
                         
-                        console.log('Join manual de respuesta con opción:', opcionEncontrada);
-                    }
-                } else {
-                    console.warn('No se encontraron opciones de pregunta en la respuesta');
+                        if (opcion && opcion.texto_opcion) {
+                            const textoLowerCase = opcion.texto_opcion.toLowerCase();
+                            
+                            if (textoLowerCase.includes('verde')) {
+                                contadores.verde += 1;
+                            } else if (textoLowerCase.includes('amarillo')) {
+                                contadores.amarillo += 1;
+                            } else if (textoLowerCase.includes('rojo')) {
+                                contadores.rojo += 1;
+                            } else if (textoLowerCase.includes('blanco')) {
+                                contadores.blanco += 1;
+                            }
+                        }
+                    });
+                    
+                    setContadorRespuestas(contadores);
                 }
             } else {
-                console.warn('No se encontró una pregunta de tipo AFINIDAD_ESTUDIANTE');
                 setIdPreguntaAfinidad(null);
                 setRespuestasAfinidad([]);
+                // Reiniciar contadores
+                setContadorRespuestas({
+                    verde: 0,
+                    amarillo: 0,
+                    rojo: 0,
+                    blanco: 0,
+                    total: 0
+                });
             }
-        }
-        
-        if (respuestasError) {
-            console.error('Error en consulta de respuestas:', respuestasError);
         }
         
         setLoadingPreguntaAfinidad(false);
@@ -120,33 +156,7 @@ export default function DashboardPage() {
             >
                 ❌
             </Link>
-            <div className="panel-form">
-                <h2 className="panel-form-title">Dashboard {identificadorClase && `- ${identificadorClase}`}</h2>
-                <div className="panel-description">
-                    Panel de visualización de datos
-                </div>
-                {claseActual && <p className="panel-clase-id">ID de clase: {claseActual}</p>}
-                
-                {loadingCuestionario ? (
-                    <p className="panel-loading-info">Cargando información del cuestionario...</p>
-                ) : cuestionarioActual ? (
-                    <div className="cuestionario-info">
-                        <p className="panel-cuestionario-id">
-                            <strong>Cuestionario activo:</strong> {cuestionarioActual.id}
-                        </p>
-                        <p>
-                            <strong>Estado:</strong> {cuestionarioActual.estado}
-                        </p>
-                        <p>
-                            <strong>Fecha de creación:</strong> {new Date(cuestionarioActual.created_at).toLocaleString()}
-                        </p>
-                    </div>
-                ) : (
-                    <p className="panel-no-cuestionario">
-                        No hay cuestionario activo para esta clase
-                    </p>
-                )}
-            </div>
+            <h2 className="panel-form-title">Dashboard {identificadorClase && `- ${identificadorClase}`}</h2>
             
             {loading ? (
                 <div className="loading-indicator">Cargando estudiantes...</div>
@@ -163,25 +173,27 @@ export default function DashboardPage() {
                             </p>
                             
                             <div className="afinidad-info-container">
-                                <h4 className="afinidad-heading">Información de preguntas de afinidad:</h4>
-                                
                                 {loadingPreguntaAfinidad ? (
                                     <p>Cargando información de la pregunta de afinidad...</p>
                                 ) : idPreguntaAfinidad ? (
                                     <div>
-                                        <p>
-                                            <strong>ID pregunta de afinidad:</strong> <span className="afinidad-id-badge">
-                                                {idPreguntaAfinidad}
-                                            </span>
-                                        </p>
-                                        
                                         {loadingRespuestas ? (
                                             <p>Cargando respuestas de afinidad...</p>
                                         ) : respuestasError ? (
                                             <div className="afinidad-error-container">
                                                 <p><strong>Error al cargar respuestas:</strong> {respuestasError.message}</p>
                                                 <button 
-                                                    onClick={() => refetchRespuestas()}
+                                                    onClick={() => {
+                                                        // Reiniciar contadores cuando se reintenta después de un error
+                                                        setContadorRespuestas({
+                                                            verde: 0,
+                                                            amarillo: 0,
+                                                            rojo: 0,
+                                                            blanco: 0,
+                                                            total: 0
+                                                        });
+                                                        refetchRespuestas();
+                                                    }}
                                                     className="afinidad-retry-btn"
                                                 >
                                                     Reintentar
@@ -189,106 +201,159 @@ export default function DashboardPage() {
                                             </div>
                                         ) : (
                                             <div className="afinidad-respuestas-container">
-                                                <p>
-                                                    <strong>Total de respuestas de afinidad:</strong> 
-                                                    <span className={respuestasAfinidad.length > 0 ? "afinidad-count" : "afinidad-empty-count"}>
-                                                        {respuestasAfinidad.length}
-                                                    </span>
-                                                    <button 
-                                                        onClick={() => {
-                                                            refetchRespuestas();
-                                                            toast.info('Actualizando respuestas...');
-                                                        }}
-                                                        className="afinidad-refresh-btn"
-                                                    >
-                                                        🔄 Actualizar
-                                                    </button>
-                                                </p>
                                                 
-                                                {respuestasAfinidad.length > 0 && (
+                                                {/* Estadísticas de respuestas por tipo */}
+                                                <div className="estadisticas-container">
+                                                    <div className="estadistica-box estadistica-verde">
+                                                        <div className="estadistica-icono">🟩</div>
+                                                        <div className="estadistica-numero">{contadorRespuestas.verde}</div>
+                                                        <div className="estadistica-etiqueta">Verde</div>
+                                                        <div className="estadistica-porcentaje">
+                                                            {contadorRespuestas.total > 0 
+                                                                ? Math.round((contadorRespuestas.verde / contadorRespuestas.total) * 100) + '%'
+                                                                : '0%'
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    <div className="estadistica-box estadistica-amarillo">
+                                                        <div className="estadistica-icono">🟨</div>
+                                                        <div className="estadistica-numero">{contadorRespuestas.amarillo}</div>
+                                                        <div className="estadistica-etiqueta">Amarillo</div>
+                                                        <div className="estadistica-porcentaje">
+                                                            {contadorRespuestas.total > 0 
+                                                                ? Math.round((contadorRespuestas.amarillo / contadorRespuestas.total) * 100) + '%'
+                                                                : '0%'
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    <div className="estadistica-box estadistica-rojo">
+                                                        <div className="estadistica-icono">🟥</div>
+                                                        <div className="estadistica-numero">{contadorRespuestas.rojo}</div>
+                                                        <div className="estadistica-etiqueta">Rojo</div>
+                                                        <div className="estadistica-porcentaje">
+                                                            {contadorRespuestas.total > 0 
+                                                                ? Math.round((contadorRespuestas.rojo / contadorRespuestas.total) * 100) + '%'
+                                                                : '0%'
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    <div className="estadistica-box estadistica-blanco">
+                                                        <div className="estadistica-icono">⚪</div>
+                                                        <div className="estadistica-numero">{contadorRespuestas.blanco}</div>
+                                                        <div className="estadistica-etiqueta">Blanco</div>
+                                                        <div className="estadistica-porcentaje">
+                                                            {contadorRespuestas.total > 0 
+                                                                ? Math.round((contadorRespuestas.blanco / contadorRespuestas.total) * 100) + '%'
+                                                                : '0%'
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {respuestasAfinidad.length > 0 ? (
                                     <div className="afinidad-respuestas-container">
-                                        <details open>
+                                        <details>
                                             <summary className="afinidad-details-summary">
                                                 Ver detalles de respuestas de afinidad ({respuestasAfinidad.length})
                                             </summary>
                                             <div className="afinidad-details-content">
                                                 <div className="respuestas-table-container">
-                                    <div className="respuestas-counter">
-                                        <p>
-                                            <strong>{respuestasAfinidad.length}</strong> respuestas encontradas
-                                        </p>
-                                    </div>
-                                    
                                     <table className="respuestas-table">
                                         <thead>
                                             <tr>
                                                 <th>Estudiante</th>
-                                                <th>Evaluó a</th>
-                                                <th>Opción seleccionada</th>
+                                                <th>Evaluaciones</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {respuestasAfinidad.map((resp: any) => (
-                                                <tr key={resp.id}>
-                                    <td>
-                                        <div>
-                                            {/* Buscamos el estudiante en nuestra lista */}
+                                            {/* Agrupar las respuestas por estudiante evaluador */}
                                             {(() => {
-                                                const estudiante = estudiantes.find(est => est.id === resp.estudiante_id);
-                                                return estudiante ? (
-                                                    <strong>{estudiante.nombre}</strong>
-                                                ) : (
-                                                    <span className="estudiante-desconocido">
-                                                        Estudiante desconocido
-                                                    </span>
-                                                );
-                                            })()}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div>
-                                            {/* Mostramos el nombre del estudiante evaluado */}
-                                            {(() => {
-                                                const estudianteEvaluado = estudiantes.find(est => est.id === resp.estudiante_evaluado_id);
-                                                return estudianteEvaluado ? (
-                                                    <strong>{estudianteEvaluado.nombre}</strong>
-                                                ) : (
-                                                    <span className="estudiante-desconocido">
-                                                        Estudiante desconocido
-                                                    </span>
-                                                );
-                                            })()}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div className="opcion-badge">
-                                            {/* Hacemos join manual con la tabla opcion_pregunta */}
-                                            {(() => {
-                                                // Buscamos la opción correspondiente por ID
-                                                const opcion = respuestasData.opcion_pregunta && Array.isArray(respuestasData.opcion_pregunta) ?
-                                                    respuestasData.opcion_pregunta.find(
-                                                        (op: any) => op.id === resp.opcion_pregunta_id
-                                                    ) : null;
+                                                // Crear un mapa de estudiante -> evaluaciones
+                                                const evaluacionesPorEstudiante = new Map();
                                                 
-                                                // Si encontramos la opción, mostramos su texto
-                                                if (opcion && opcion.texto_opcion) {
-                                                    return opcion.texto_opcion;
-                                                }
+                                                // Agrupar las respuestas por estudiante
+                                                respuestasAfinidad.forEach(resp => {
+                                                    const estudianteId = resp.estudiante_id;
+                                                    if (!evaluacionesPorEstudiante.has(estudianteId)) {
+                                                        evaluacionesPorEstudiante.set(estudianteId, []);
+                                                    }
+                                                    evaluacionesPorEstudiante.get(estudianteId).push(resp);
+                                                });
                                                 
-                                                // Si no la encontramos, mostramos un mensaje genérico
-                                                return resp.opcion_pregunta_id ? 
-                                                    "Opción seleccionada" : 
-                                                    "No disponible";
+                                                // Convertir el mapa en un array para renderizar
+                                                return Array.from(evaluacionesPorEstudiante).map(([estudianteId, evaluaciones]) => {
+                                                    const estudiante = estudiantes.find(est => est.id === estudianteId);
+                                                    
+                                                    return (
+                                                        <tr key={estudianteId}>
+                                                            <td>
+                                                                <strong>
+                                                                    {estudiante ? estudiante.nombre : "Estudiante desconocido"}
+                                                                </strong>
+                                                            </td>
+                                                            <td>
+                                                                <details>
+                                                                    <summary className="evaluaciones-summary">
+                                                                        Ver {evaluaciones.length} evaluación(es)
+                                                                    </summary>
+                                                                    <div className="evaluaciones-lista">
+                                                                        <table className="evaluaciones-subtabla">
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th>Evaluó a</th>
+                                                                                    <th>Opción seleccionada</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {evaluaciones.map((resp: any) => {
+                                                                                    const estudianteEvaluado = estudiantes.find(est => est.id === resp.estudiante_evaluado_id);
+                                                                                    
+                                                                                    const opcion = respuestasData.opcion_pregunta && Array.isArray(respuestasData.opcion_pregunta) ?
+                                                                                        respuestasData.opcion_pregunta.find((op: any) => op.id === resp.opcion_pregunta_id) : null;
+                                                                                    
+                                                                                    return (
+                                                                                        <tr key={resp.id}>
+                                                                                            <td>
+                                                                                                {estudianteEvaluado ? (
+                                                                                                    <strong>{estudianteEvaluado.nombre}</strong>
+                                                                                                ) : (
+                                                                                                    <span className="estudiante-desconocido">
+                                                                                                        Estudiante desconocido
+                                                                                                    </span>
+                                                                                                )}
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                {opcion && opcion.texto_opcion ? (
+                                                                                                    <div className={getOptionClass(opcion.texto_opcion)}>
+                                                                                                        {getOptionIcon(opcion.texto_opcion)} {opcion.texto_opcion}
+                                                                                                    </div>
+                                                                                                ) : (
+                                                                                                    <div className="opcion-badge">
+                                                                                                        {resp.opcion_pregunta_id ? "Opción seleccionada" : "No disponible"}
+                                                                                                    </div>
+                                                                                                )}
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    );
+                                                                                })}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </details>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                });
                                             })()}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                                                        </tbody>
+                                        </tbody>
                                                     </table>
                                                 </div>
                                             </div>
                                         </details>
+                                    </div>
+                                ) : (
+                                    <div className="no-respuestas-mensaje">
+                                        <p>No hay respuestas de afinidad registradas todavía.</p>
                                     </div>
                                 )}
                                             </div>
@@ -304,7 +369,12 @@ export default function DashboardPage() {
                     <ul className="dashboard-students-list">
                                         {estudiantes.map((est) => (
                             <li key={est.id}>
-                                <span className="student-name">{est.nombre}</span>
+                                <div>
+                                    <span className="student-name">{est.nombre}</span>
+                                    <div className="student-code">
+                                        Código estudiante: <span className="code-value">{est.codigo_estudiante}</span>
+                                    </div>
+                                </div>
                                 {est.cuestionario_id && (
                                     <span 
                                         className="student-has-questionnaire" 
