@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEstudiantes } from "@/context/EstudiantesContext";
 import { useRespuestas } from "@/context/RespuestasContext";
+import { EstadoCuestionario } from "@/components";
 
 // Funciones utilitarias para el manejo de opciones
 const getOptionIcon = (texto: string) => {
@@ -351,15 +352,18 @@ export default function DashboardPage() {
                             </div>
                         </div>
                     )}
-                    
-                    <ul className="dashboard-students-list">
-                                        {estudiantes.map((est) => (
+                      <ul className="dashboard-students-list">
+                        {estudiantes.map((est) => (
                             <li key={est.id}>
                                 <div>
                                     <span className="student-name">{est.nombre}</span>
                                     <div className="student-code">
                                         Código estudiante: <span className="code-value">{est.codigo_estudiante}</span>
                                     </div>
+                                    <EstadoCuestionario 
+                                        estudianteId={est.id} 
+                                        cuestionarioId={est.cuestionario_id}
+                                    />
                                 </div>
                                 {est.cuestionario_id && (
                                     <span 

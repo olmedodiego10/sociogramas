@@ -2,58 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { CREATE_ESTUDIANTE_MUTATION, UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION, DELETE_ESTUDIANTE_MUTATION, DELETE_RESPUESTAS_ESTUDIANTE_MUTATION } from "@/graphql/mutations";
-import { GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY } from "@/graphql/queries";
 import '../sociogramas.css';
 import Link from "next/link";
 import { useEstudiantes } from "@/context/EstudiantesContext";
+import { useRespuestas } from "@/context/RespuestasContext";
 import { useRouter } from "next/navigation";
-
-// Componente para mostrar el estado del cuestionario
-function EstadoCuestionario({ estudianteId, cuestionarioId, ultimaPreguntaId, loadingPregunta }: 
-    { estudianteId: string, cuestionarioId: string | null, ultimaPreguntaId: string | undefined, loadingPregunta: boolean }) {
-    // Si no hay cuestionario asignado, mostramos un mensaje específico
-    if (!cuestionarioId) {
-        return (
-            <div className="estado-cuestionario estado-cuestionario-sin-asignar">
-                Sin cuestionario asignado ❗
-            </div>
-        );
-    }
-    
-    //Verificar si el estudiante ha respondido esa pregunta
-    const { data, loading, error } = useQuery(GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY, {
-        variables: { 
-            estudiante_id: estudianteId, 
-            cuestionario_id: cuestionarioId,
-            pregunta_id: ultimaPreguntaId
-        },
-        skip: !ultimaPreguntaId, // No ejecutar hasta tener el ID de la pregunta
-        fetchPolicy: "cache-and-network"
-    });
-
-    // Mostrar estado de carga
-    if (loadingPregunta || loading) {
-        return <span className="estado-cuestionario-verificando">Verificando estado...</span>;
-    }
-    
-    // Manejar errores de forma silenciosa en la UI
-    if (error) {
-        return <span className="estado-cuestionario-error">Error al verificar</span>;
-    }
-    
-    // Verificar si hay al menos una respuesta para la última pregunta
-    const cuestionarioCompletado = data?.respuesta?.length > 0;
-
-    return (
-        <div className={`estado-cuestionario ${cuestionarioCompletado ? 'estado-cuestionario-completado' : 'estado-cuestionario-pendiente'}`}>
-            {cuestionarioCompletado 
-                ? "Cuestionario completado ✅" 
-                : "Cuestionario pendiente ⌛"}
-        </div>
-    );
-}
+import { EstadoCuestionario } from "@/components";
 
 export default function EstudiantesPage() {
     const router = useRouter();
@@ -68,6 +24,7 @@ export default function EstudiantesPage() {
         ultimaPreguntaId,
         loadingUltimaPregunta
     } = useEstudiantes();
+    const { setCuestionarioActual } = useRespuestas();
     const [nombre, setNombre] = useState("");
 
     // Redirigir al panel si no hay clase seleccionada
@@ -76,6 +33,13 @@ export default function EstudiantesPage() {
             router.push('/panel');
         }
     }, [claseActual, router]);
+
+    // Sincronizar el cuestionario actual con el contexto de respuestas
+    useEffect(() => {
+        if (cuestionarioActual?.id) {
+            setCuestionarioActual(cuestionarioActual.id);
+        }
+    }, [cuestionarioActual, setCuestionarioActual]);
 
     const [createEstudiante] = useMutation(CREATE_ESTUDIANTE_MUTATION);
     const [deleteEstudiante, { loading: deletingEstudiante }] = useMutation(DELETE_ESTUDIANTE_MUTATION);
@@ -251,8 +215,6 @@ export default function EstudiantesPage() {
                                 <EstadoCuestionario 
                                     estudianteId={est.id} 
                                     cuestionarioId={est.cuestionario_id}
-                                    ultimaPreguntaId={ultimaPreguntaId}
-                                    loadingPregunta={loadingUltimaPregunta}
                                 />
                             </div>
                             <button className="panel-btn-blue" type="button" style={{ minWidth: 60 }}>

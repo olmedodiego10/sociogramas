@@ -139,16 +139,3 @@ export const GET_RESPUESTAS_QUERY = gql`
     }
   }
 `;
-
-// Verificar si el estudiante completó el cuestionario
-export const GET_ESTADO_CUESTIONARIO_ESTUDIANTE_QUERY = gql`
-  query GetEstadoCuestionarioEstudiante($estudiante_id: uuid!, $cuestionario_id: uuid!, $pregunta_id: uuid!) {
-    respuesta(where: {
-      estudiante_id: {_eq: $estudiante_id},
-      cuestionario_id: {_eq: $cuestionario_id},
-      pregunta_id: {_eq: $pregunta_id}
-    }, limit: 1) {
-      id
-    }
-  }
-`;
