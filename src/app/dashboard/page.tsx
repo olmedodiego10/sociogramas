@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEstudiantes } from "@/context/EstudiantesContext";
 import { useRespuestas } from "@/context/RespuestasContext";
+import { usePreguntasConOpciones } from "@/context/PreguntasConOpcionesContext";
 import { EstadoCuestionario } from "@/components";
 
 // Funciones utilitarias para el manejo de opciones
@@ -45,9 +46,12 @@ export default function DashboardPage() {
         error: respuestasError,
         setCuestionarioActual,
         refetchRespuestas,
-        idPreguntaAfinidad,
-        loadingPreguntaAfinidad
+        idPreguntaAfinidad
     } = useRespuestas();
+    
+    const {
+        loading: loadingPreguntaAfinidad
+    } = usePreguntasConOpciones();
     
     // Estados para almacenar datos filtrados
     const [respuestasAfinidad, setRespuestasAfinidad] = useState<any[]>([]);
