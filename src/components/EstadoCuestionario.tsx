@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import { useEstudiantes } from "@/context/EstudiantesContext";
 import { useRespuestas } from "@/context/RespuestasContext";
+import { usePreguntasConOpciones } from "@/context/PreguntasConOpcionesContext";
 
 interface EstadoCuestionarioProps {
     estudianteId: string;
@@ -10,7 +10,15 @@ interface EstadoCuestionarioProps {
 
 export function EstadoCuestionario({ estudianteId, cuestionarioId }: EstadoCuestionarioProps) {
     const { respuestasData, loading } = useRespuestas();
-    const { ultimaPreguntaId, loadingUltimaPregunta } = useEstudiantes();
+    const { preguntasData, loading: loadingPreguntas } = usePreguntasConOpciones();
+    
+    // Obtener el ID de la última pregunta (la de mayor numero_pregunta)
+    const ultimaPreguntaId = React.useMemo(() => {
+        if (!preguntasData?.pregunta) return null;
+        
+        const preguntasOrdenadas = [...preguntasData.pregunta].sort((a, b) => b.numero_pregunta - a.numero_pregunta);
+        return preguntasOrdenadas[0]?.id || null;
+    }, [preguntasData]);
     
     // Si no hay cuestionario asignado, mostramos un mensaje específico
     if (!cuestionarioId) {
@@ -22,7 +30,7 @@ export function EstadoCuestionario({ estudianteId, cuestionarioId }: EstadoCuest
     }
     
     // Mostrar estado de carga
-    if (loadingUltimaPregunta || loading) {
+    if (loadingPreguntas || loading) {
         return <span className="estado-cuestionario-verificando">Verificando estado...</span>;
     }
     

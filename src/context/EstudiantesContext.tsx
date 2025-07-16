@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useQuery, useLazyQuery } from '@apollo/client';
-import { GET_ESTUDIANTES_QUERY, GET_CUESTIONARIOS_DE_UNA_CLASE_QUERY, GET_ID_ULTIMA_PREGUNTA_QUERY } from '@/graphql/queries';
+import { GET_ESTUDIANTES_QUERY, GET_CUESTIONARIOS_DE_UNA_CLASE_QUERY } from '@/graphql/queries';
 
 // Define the type for a student
 export type Estudiante = {
@@ -24,8 +24,6 @@ type EstudiantesContextType = {
   error: any;
   cuestionarioActual: any | null;
   loadingCuestionario: boolean;
-  ultimaPreguntaId: string | undefined;
-  loadingUltimaPregunta: boolean;
   setClaseActual: (claseId: string | null, identificador: string | null) => void;
   refetchEstudiantes: () => Promise<void>;
   refetchCuestionario: () => Promise<void>;
@@ -40,8 +38,6 @@ const EstudiantesContext = createContext<EstudiantesContextType>({
   error: null,
   cuestionarioActual: null,
   loadingCuestionario: false,
-  ultimaPreguntaId: undefined,
-  loadingUltimaPregunta: false,
   setClaseActual: () => {},
   refetchEstudiantes: async () => {},
   refetchCuestionario: async () => {},
@@ -70,16 +66,6 @@ export function EstudiantesProvider({ children }: { children: ReactNode }) {
     skip: !claseActual,
     fetchPolicy: 'network-only',
   });
-
-  // Consulta para obtener el ID de la última pregunta (una sola vez para toda la aplicación)
-  const { 
-    data: preguntaData, 
-    loading: loadingUltimaPregunta 
-  } = useQuery(GET_ID_ULTIMA_PREGUNTA_QUERY, {
-    fetchPolicy: 'cache-first', // Cache first para evitar requests innecesarios
-  });
-
-  const ultimaPreguntaId = preguntaData?.pregunta?.[0]?.id;
 
   // Buscar el cuestionario más reciente con estado ACTIVA
   const cuestionarioActual = React.useMemo(() => {
@@ -124,8 +110,6 @@ export function EstudiantesProvider({ children }: { children: ReactNode }) {
     error,
     cuestionarioActual,
     loadingCuestionario,
-    ultimaPreguntaId,
-    loadingUltimaPregunta,
     setClaseActual,
     refetchEstudiantes,
     refetchCuestionario,

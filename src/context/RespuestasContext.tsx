@@ -1,8 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
-import { useLazyQuery, useQuery } from '@apollo/client';
-import { GET_RESPUESTAS_QUERY, GET_ID_PREGUNTA_AFINIDAD_ESTUDIANTE_QUERY } from '@/graphql/queries';
+import { useLazyQuery } from '@apollo/client';
+import { GET_RESPUESTAS_QUERY } from '@/graphql/queries';
+import { usePreguntasConOpciones } from './PreguntasConOpcionesContext';
 
 // Define the context type
 type RespuestasContextType = {
@@ -11,7 +12,6 @@ type RespuestasContextType = {
   error: any;
   cuestionarioActual: string | null;
   idPreguntaAfinidad: string | null;
-  loadingPreguntaAfinidad: boolean;
   setCuestionarioActual: (cuestionarioId: string | null) => void;
   refetchRespuestas: () => Promise<void>;
 };
@@ -23,7 +23,6 @@ const RespuestasContext = createContext<RespuestasContextType>({
   error: null,
   cuestionarioActual: null,
   idPreguntaAfinidad: null,
-  loadingPreguntaAfinidad: false,
   setCuestionarioActual: () => {},
   refetchRespuestas: async () => {},
 });
@@ -34,21 +33,18 @@ export const useRespuestas = () => useContext(RespuestasContext);
 // Provider component
 export function RespuestasProvider({ children }: { children: ReactNode }) {
   const [cuestionarioActual, setCuestionarioIdActual] = useState<string | null>(null);
+  const { getPreguntaAfinidad } = usePreguntasConOpciones();
   
   // Use lazy query to fetch responses only when we have a cuestionario ID
   const [fetchRespuestas, { data: respuestasData, loading, error, refetch }] = useLazyQuery(GET_RESPUESTAS_QUERY, {
     fetchPolicy: 'network-only',
   });
 
-  // Consulta para obtener el ID de la pregunta de afinidad (una sola vez para toda la aplicación)
-  const { 
-    data: preguntaAfinidadData, 
-    loading: loadingPreguntaAfinidad 
-  } = useQuery(GET_ID_PREGUNTA_AFINIDAD_ESTUDIANTE_QUERY, {
-    fetchPolicy: 'cache-first', // Cache first para evitar requests innecesarios
-  });
-
-  const idPreguntaAfinidad = preguntaAfinidadData?.pregunta?.[0]?.id || null;
+  // Obtener el ID de la pregunta de afinidad desde el contexto de preguntas
+  const idPreguntaAfinidad = useMemo(() => {
+    const preguntaAfinidad = getPreguntaAfinidad();
+    return preguntaAfinidad?.id || null;
+  }, [getPreguntaAfinidad]);
 
   // Set cuestionario ID and fetch responses
   const setCuestionarioActual = useCallback((cuestionarioId: string | null) => {
@@ -72,10 +68,9 @@ export function RespuestasProvider({ children }: { children: ReactNode }) {
     error,
     cuestionarioActual,
     idPreguntaAfinidad,
-    loadingPreguntaAfinidad,
     setCuestionarioActual,
     refetchRespuestas,
-  }), [respuestasData, loading, error, cuestionarioActual, idPreguntaAfinidad, loadingPreguntaAfinidad, setCuestionarioActual, refetchRespuestas]);
+  }), [respuestasData, loading, error, cuestionarioActual, idPreguntaAfinidad, setCuestionarioActual, refetchRespuestas]);
 
   return (
     <RespuestasContext.Provider value={value}>

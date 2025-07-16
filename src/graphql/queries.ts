@@ -86,26 +86,6 @@ export const GET_OPCIONES_PREGUNTA_QUERY = gql`
   }
 `;
 
-// Obtener el id de la pregunta con el numero_pregunta más alto (última pregunta)
-export const GET_ID_ULTIMA_PREGUNTA_QUERY = gql`
-  query GetIdUltimaPregunta {
-    pregunta(order_by: {numero_pregunta: desc}, limit: 1) {
-      id
-      numero_pregunta
-    }
-  }
-`;
-
-// Obtener el id de la pregunta con tipo_pregunta AFINIDAD_ESTUDIANTE
-export const GET_ID_PREGUNTA_AFINIDAD_ESTUDIANTE_QUERY = gql`
-  query GetIdPreguntaAfinidadEstudiante {
-    pregunta(where: {tipo_pregunta: {_eq: AFINIDAD_ESTUDIANTE}}, limit: 1) {
-      id
-      numero_pregunta
-    }
-  }
-`;
-
 // Obtener todas las respuestas para un cuestionario específico
 export const GET_RESPUESTAS_QUERY = gql`
   query GetRespuestas($cuestionario_id: uuid!) {
