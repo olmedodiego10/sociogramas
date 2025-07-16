@@ -568,16 +568,53 @@ body {
   display: flex;
   justify-content: center;
   margin-bottom: 24px;
+  padding: 0 16px;
 }
 
 .cuestionario-select {
   font-size: 1.1em;
-  padding: 8px 16px;
+  padding: 12px 16px;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  min-width: 220px;
+  border: 2px solid #ccc;
+  width: 100%;
+  max-width: 350px;
   text-align: left;
   font-weight: 600;
+  background-color: #fff;
+  box-sizing: border-box;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.cuestionario-select:focus {
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cuestionario-select:active {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Estilos específicos para móvil */
+@media (max-width: 768px) {
+  .cuestionario-opciones-container {
+    padding: 0 12px;
+  }
+  
+  .cuestionario-select {
+    font-size: 16px; /* Evita zoom en iOS */
+    padding: 14px 16px;
+    border-width: 2px;
+    max-width: none;
+    width: 100%;
+    min-height: 48px; /* Mínimo para touch */
+    line-height: 1.2;
+  }
 }
 
 .cuestionario-pregunta-extra {
@@ -680,6 +717,25 @@ body {
   cursor: pointer;
   font-weight: 400;
   font-size: 1.1em;
+}
+
+/* Estilos para estudiantes ya seleccionados previamente */
+.cuestionario-estudiante-checkbox.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cuestionario-estudiante-label.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  color: #666;
+}
+
+.ya-seleccionado {
+  font-style: italic;
+  color: #1db954;
+  font-weight: 500;
+  font-size: 0.9em;
 }
 
 .cuestionario-centro {

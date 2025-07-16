@@ -5,6 +5,7 @@ import { useLazyQuery, useMutation } from "@apollo/client";
 import { GET_ESTUDIANTE_BY_CODIGO_QUERY } from "@/graphql/queries";
 import { GET_CLASES_QUERY } from "@/graphql/queries";
 import { GET_ESTUDIANTES_QUERY } from "@/graphql/queries";
+import { GET_RESPUESTAS_BY_ESTUDIANTE_ID_QUERY } from "@/graphql/queries";
 import { UPSERT_RESPUESTA_MUTATION } from "@/graphql/mutations";
 import { usePreguntasConOpciones } from "@/context/PreguntasConOpcionesContext";
 
@@ -24,6 +25,10 @@ export default function CuestionarioEstudiante() {
   const [indicePreguntaActual, setIndicePreguntaActual] = React.useState(0);
   const [finalizado, setFinalizado] = React.useState(false);
   
+  // Estados para manejo de respuestas existentes
+  const [estudiantesPendientes, setEstudiantesPendientes] = React.useState<any[]>([]);
+  const [preguntasAdicionalesPendientes, setPreguntasAdicionalesPendientes] = React.useState<number[]>([]);
+  
   const searchParams = useSearchParams();
   const codigoEstudiante = searchParams.get("codigo_estudiante");
 
@@ -42,6 +47,7 @@ export default function CuestionarioEstudiante() {
   const [getEstudiante, { data, loading, error }] = useLazyQuery(GET_ESTUDIANTE_BY_CODIGO_QUERY);
   const [getClases, { data: dataClases }] = useLazyQuery(GET_CLASES_QUERY);
   const [getEstudiantes, { data: dataEstudiantes }] = useLazyQuery(GET_ESTUDIANTES_QUERY);
+  const [getRespuestasEstudiante, { data: dataRespuestasEstudiante }] = useLazyQuery(GET_RESPUESTAS_BY_ESTUDIANTE_ID_QUERY);
 
   // Carga estudiante, clase y estudiantes relacionados
   useEffect(() => {
@@ -62,22 +68,134 @@ export default function CuestionarioEstudiante() {
       });
   }, [codigoEstudiante, getEstudiante, getClases, getEstudiantes]);
 
+  // useEffect para cargar respuestas existentes del estudiante
+  useEffect(() => {
+    if (data && data.estudiante && data.estudiante.length > 0) {
+      const estudianteId = data.estudiante[0].id;
+      getRespuestasEstudiante({ variables: { estudiante_id: estudianteId } });
+    }
+  }, [data, getRespuestasEstudiante]);
+
+  // useEffect para procesar respuestas existentes y determinar qué preguntas faltan
+  useEffect(() => {
+    if (dataRespuestasEstudiante && dataEstudiantes && preguntasData && opcionesPreguntaData) {
+      const respuestasExistentes = dataRespuestasEstudiante.respuesta || [];
+      const estudianteActual = data?.estudiante?.[0];
+      
+      console.log("🔍 Procesando respuestas existentes:");
+      console.log("Respuestas existentes:", respuestasExistentes);
+      console.log("Estudiante actual:", estudianteActual);
+      
+      if (!estudianteActual) return;
+
+      // Obtener todos los estudiantes del curso (excluyendo al estudiante actual)
+      const todosLosEstudiantes = (dataEstudiantes.estudiante as Array<{ id: string; nombre: string; cuestionario_id: string }>)
+        .filter((e) => e.cuestionario_id === cuestionarioId && e.id !== estudianteActual.id);
+
+      console.log("Todos los estudiantes del curso:", todosLosEstudiantes);
+
+      // Verificar respuestas de afinidad (pregunta principal)
+      const preguntaAfinidad = getPreguntaAfinidad();
+      const estudiantesConRespuesta = new Set();
+      
+      console.log("Pregunta de afinidad:", preguntaAfinidad);
+      
+      if (preguntaAfinidad) {
+        respuestasExistentes.forEach((respuesta: any) => {
+          if (respuesta.pregunta_id === preguntaAfinidad.id && respuesta.estudiante_evaluado_id) {
+            estudiantesConRespuesta.add(respuesta.estudiante_evaluado_id);
+            console.log("Estudiante con respuesta de afinidad:", respuesta.estudiante_evaluado_id);
+          }
+        });
+      }
+
+      console.log("Estudiantes con respuesta de afinidad (Set):", estudiantesConRespuesta);
+
+      // Filtrar estudiantes que no tienen respuesta de afinidad
+      const estudiantesSinRespuesta = todosLosEstudiantes.filter(est => !estudiantesConRespuesta.has(est.id));
+
+      console.log("Estudiantes sin respuesta de afinidad:", estudiantesSinRespuesta);
+
+      // Verificar preguntas adicionales
+      const preguntasAdicionalesArray = getPreguntasMultipleSeleccion(5);
+      const preguntasAdicionalesRespondidas = new Set();
+      
+      // Para preguntas adicionales, no las marcamos como completadas automáticamente
+      // Permitiremos que se muestren para agregar nuevos estudiantes
+      preguntasAdicionalesArray.forEach((pregunta: any) => {
+        // Solo marcar como respondida si NO hay estudiantes nuevos que evaluar
+        if (estudiantesSinRespuesta.length === 0) {
+          const tieneRespuesta = respuestasExistentes.some((respuesta: any) => 
+            respuesta.pregunta_id === pregunta.id
+          );
+          if (tieneRespuesta) {
+            preguntasAdicionalesRespondidas.add(pregunta.numero_pregunta);
+          }
+        }
+      });
+
+      const preguntasAdicionalesFaltantes = preguntasAdicionalesArray
+        .filter((p: any) => !preguntasAdicionalesRespondidas.has(p.numero_pregunta))
+        .map((p: any) => p.numero_pregunta);
+
+      console.log("Preguntas adicionales faltantes:", preguntasAdicionalesFaltantes);
+
+      // Actualizar estados según lo que falta por responder
+      setEstudiantesPendientes(estudiantesSinRespuesta);
+      setPreguntasAdicionalesPendientes(preguntasAdicionalesFaltantes);
+
+      // Determinar el estado del cuestionario
+      if (estudiantesSinRespuesta.length === 0 && preguntasAdicionalesFaltantes.length === 0) {
+        // Todo está completado - verificar si hay nuevos estudiantes para preguntas adicionales
+        const hayNuevosEstudiantesParaPreguntas = todosLosEstudiantes.length > 0;
+        
+        if (hayNuevosEstudiantesParaPreguntas) {
+          console.log("📝 Hay nuevos estudiantes para agregar a preguntas adicionales");
+          setFaseEvaluacionEstudiantesCompletada(true);
+          setPreguntasAdicionales(preguntasAdicionalesArray.map(p => p.numero_pregunta));
+          setIndicePreguntaActual(0);
+        } else {
+          console.log("✅ Todo está completado - finalizando cuestionario");
+          setFinalizado(true);
+        }
+      } else if (estudiantesSinRespuesta.length === 0 && preguntasAdicionalesFaltantes.length > 0) {
+        // Solo faltan preguntas adicionales
+        console.log("📝 Solo faltan preguntas adicionales");
+        setFaseEvaluacionEstudiantesCompletada(true);
+        setPreguntasAdicionales(preguntasAdicionalesFaltantes);
+        setIndicePreguntaActual(0);
+      } else {
+        // Faltan estudiantes por evaluar
+        console.log("👥 Faltan estudiantes por evaluar");
+        setIndiceEstudiante(0);
+        setFaseEvaluacionEstudiantesCompletada(false);
+      }
+    }
+  }, [dataRespuestasEstudiante, dataEstudiantes, preguntasData, opcionesPreguntaData, data, cuestionarioId, getPreguntaAfinidad, getPreguntasMultipleSeleccion]);
+
   // Cargar preguntas y opciones solo cuando se muestran - Ya no es necesario porque el context las carga automáticamente
   // Las preguntas y opciones ya están disponibles a través del context
   
   // useEffect para cargar preguntas adicionales cuando se completa la sección de estudiantes
   useEffect(() => {
     if (faseEvaluacionEstudiantesCompletada && preguntasData && preguntasData.pregunta) {
-      const preguntasAdicionalesArray = getPreguntasMultipleSeleccion(5);
-      
-      if (preguntasAdicionalesArray.length > 0) {
-        setPreguntasAdicionales(preguntasAdicionalesArray.map(p => p.numero_pregunta));
+      // Usar la lista de preguntas adicionales pendientes si está disponible
+      if (preguntasAdicionalesPendientes.length > 0) {
+        setPreguntasAdicionales(preguntasAdicionalesPendientes);
         setIndicePreguntaActual(0);
       } else {
-        setFinalizado(true);
+        // Si no hay pendientes específicas, usar la lógica original
+        const preguntasAdicionalesArray = getPreguntasMultipleSeleccion(5);
+        
+        if (preguntasAdicionalesArray.length > 0) {
+          setPreguntasAdicionales(preguntasAdicionalesArray.map(p => p.numero_pregunta));
+          setIndicePreguntaActual(0);
+        } else {
+          setFinalizado(true);
+        }
       }
     }
-  }, [faseEvaluacionEstudiantesCompletada, preguntasData, getPreguntasMultipleSeleccion]);
+  }, [faseEvaluacionEstudiantesCompletada, preguntasData, getPreguntasMultipleSeleccion, preguntasAdicionalesPendientes]);
 
   let nombreEstudiante = "";
   if (data && data.estudiante && data.estudiante.length > 0) {
@@ -100,15 +218,21 @@ export default function CuestionarioEstudiante() {
       // Si falta data, solo avanzar
       if (indiceEstudiante >= estudiantesFiltrados.length - 1) {
         setFaseEvaluacionEstudiantesCompletada(true);
-        // Verificar y cargar las preguntas adicionales (inicialmente la 5)
-        const preguntasAdicionalesArray = getPreguntasMultipleSeleccion(5);
-        
-        if (preguntasAdicionalesArray.length > 0) {
-          setPreguntasAdicionales(preguntasAdicionalesArray.map(p => p.numero_pregunta));
+        // Usar preguntas adicionales pendientes si están disponibles
+        if (preguntasAdicionalesPendientes.length > 0) {
+          setPreguntasAdicionales(preguntasAdicionalesPendientes);
           setIndicePreguntaActual(0);
         } else {
-          // Si no hay preguntas adicionales, finalizar el cuestionario
-          setFinalizado(true);
+          // Verificar y cargar las preguntas adicionales (inicialmente la 5)
+          const preguntasAdicionalesArray = getPreguntasMultipleSeleccion(5);
+          
+          if (preguntasAdicionalesArray.length > 0) {
+            setPreguntasAdicionales(preguntasAdicionalesArray.map(p => p.numero_pregunta));
+            setIndicePreguntaActual(0);
+          } else {
+            // Si no hay preguntas adicionales, finalizar el cuestionario
+            setFinalizado(true);
+          }
         }
       } else {
         setIndiceEstudiante((prev) => prev + 1);
@@ -122,15 +246,21 @@ export default function CuestionarioEstudiante() {
     if (!pregunta) {
       if (indiceEstudiante >= estudiantesFiltrados.length - 1) {
         setFaseEvaluacionEstudiantesCompletada(true);
-        // Verificar y cargar las preguntas adicionales
-        const preguntasAdicionalesArray = getPreguntasMultipleSeleccion(5);
-        
-        if (preguntasAdicionalesArray.length > 0) {
-          setPreguntasAdicionales(preguntasAdicionalesArray.map(p => p.numero_pregunta));
+        // Usar preguntas adicionales pendientes si están disponibles
+        if (preguntasAdicionalesPendientes.length > 0) {
+          setPreguntasAdicionales(preguntasAdicionalesPendientes);
           setIndicePreguntaActual(0);
         } else {
-          // Si no hay preguntas adicionales, finalizar el cuestionario
-          setFinalizado(true);
+          // Verificar y cargar las preguntas adicionales
+          const preguntasAdicionalesArray = getPreguntasMultipleSeleccion(5);
+          
+          if (preguntasAdicionalesArray.length > 0) {
+            setPreguntasAdicionales(preguntasAdicionalesArray.map(p => p.numero_pregunta));
+            setIndicePreguntaActual(0);
+          } else {
+            // Si no hay preguntas adicionales, finalizar el cuestionario
+            setFinalizado(true);
+          }
         }
       } else {
         setIndiceEstudiante((prev) => prev + 1);
@@ -242,15 +372,21 @@ export default function CuestionarioEstudiante() {
     if (indiceEstudiante >= estudiantesFiltrados.length - 1) {
       setFaseEvaluacionEstudiantesCompletada(true);
       
-      // Cargar preguntas adicionales (inicialmente la 5)
-      const preguntasAdicionalesArray = getPreguntasMultipleSeleccion(5);
-      
-      if (preguntasAdicionalesArray.length > 0) {
-        setPreguntasAdicionales(preguntasAdicionalesArray.map(p => p.numero_pregunta));
+      // Usar preguntas adicionales pendientes si están disponibles, sino usar la lógica original
+      if (preguntasAdicionalesPendientes.length > 0) {
+        setPreguntasAdicionales(preguntasAdicionalesPendientes);
         setIndicePreguntaActual(0);
       } else {
-        // Si no hay preguntas adicionales, finalizar el cuestionario
-        setFinalizado(true);
+        // Cargar preguntas adicionales (inicialmente la 5)
+        const preguntasAdicionalesArray = getPreguntasMultipleSeleccion(5);
+        
+        if (preguntasAdicionalesArray.length > 0) {
+          setPreguntasAdicionales(preguntasAdicionalesArray.map(p => p.numero_pregunta));
+          setIndicePreguntaActual(0);
+        } else {
+          // Si no hay preguntas adicionales, finalizar el cuestionario
+          setFinalizado(true);
+        }
       }
     } else {
       setIndiceEstudiante((prev) => prev + 1);
@@ -296,11 +432,27 @@ export default function CuestionarioEstudiante() {
       .filter((e) => e.cuestionario_id === cuestionarioId && e.id !== estudianteQueResponde.id);
     
     try {
-      // Guardar una respuesta por cada estudiante seleccionado
+      // Guardar una respuesta por cada estudiante seleccionado (solo los nuevos)
       for (const estudianteId of estudiantesSeleccionadosParaPregunta) {
+        // Verificar si este estudiante ya fue seleccionado previamente
+        const yaSeleccionado = dataRespuestasEstudiante?.respuesta?.some((respuesta: any) => 
+          respuesta.estudiante_id === estudianteQueResponde.id &&
+          respuesta.estudiante_evaluado_id === estudianteId &&
+          respuesta.pregunta_id === preguntaActual.id &&
+          respuesta.cuestionario_id === cuestionarioId
+        );
+        
+        // Solo guardar si no fue seleccionado previamente
+        if (yaSeleccionado) {
+          console.log(`Estudiante ${estudianteId} ya fue seleccionado previamente para la pregunta ${preguntaActual.id}`);
+          continue;
+        }
+        
         // Encontrar el estudiante seleccionado
         const estudianteSeleccionado = estudiantesDelCurso.find(e => e.id === estudianteId);
         if (!estudianteSeleccionado) continue;
+        
+        console.log(`Guardando nueva respuesta para estudiante ${estudianteId} en pregunta ${preguntaActual.id}`);
         
         // Guardar respuesta con el estudiante evaluado
         await upsertRespuesta({
@@ -319,6 +471,11 @@ export default function CuestionarioEstudiante() {
       if (indicePreguntaActual < preguntasAdicionales.length - 1) {
         setIndicePreguntaActual(prev => prev + 1);
       } else {
+        // Verificar si hay más estudiantes que evaluar en futuras sesiones
+        const todosLosEstudiantesDelCurso = (dataEstudiantes.estudiante as Array<{ id: string; nombre: string; cuestionario_id: string }>)
+          .filter((e) => e.cuestionario_id === cuestionarioId && e.id !== estudianteQueResponde.id);
+        
+        // Si ya no hay más preguntas adicionales que mostrar, finalizar
         setFinalizado(true);
       }
       
@@ -384,10 +541,13 @@ export default function CuestionarioEstudiante() {
           })() : null}
           {/* Mostrar un estudiante a la vez con botón siguiente */}
           {dataEstudiantes && dataEstudiantes.estudiante && preguntasData && preguntasData.pregunta && opcionesPreguntaData && opcionesPreguntaData.opcion_pregunta ? (() => {
-            const estudiantesFiltrados = (dataEstudiantes.estudiante as Array<{ id: string; nombre: string; cuestionario_id: string }> )
-              .filter((e) => e.cuestionario_id === cuestionarioId && e.id !== (data?.estudiante?.[0]?.id));
+            // Usar estudiantes pendientes en lugar de todos los estudiantes
+            const estudiantesFiltrados = estudiantesPendientes.length > 0 ? estudiantesPendientes : 
+              (dataEstudiantes.estudiante as Array<{ id: string; nombre: string; cuestionario_id: string }> )
+                .filter((e) => e.cuestionario_id === cuestionarioId && e.id !== (data?.estudiante?.[0]?.id));
+            
             if (estudiantesFiltrados.length === 0) {
-              return <p style={{ textAlign: 'center', marginTop: 24 }}>No hay estudiantes para este cuestionario.</p>;
+              return <p style={{ textAlign: 'center', marginTop: 24 }}>No hay estudiantes pendientes para evaluar.</p>;
             }
             // Si ya se finalizó, no mostrar nada aquí
             if (indiceEstudiante >= estudiantesFiltrados.length) return null;
@@ -544,6 +704,19 @@ export default function CuestionarioEstudiante() {
             const estudiantesSeleccionadosParaPregunta = estudiantesSeleccionados[key] || [];
             
             const handleEstudianteCheckboxChange = (estudianteId: string) => {
+              // Verificar si este estudiante ya fue seleccionado previamente
+              const yaSeleccionado = dataRespuestasEstudiante?.respuesta?.some((respuesta: any) => 
+                respuesta.estudiante_id === data?.estudiante?.[0]?.id &&
+                respuesta.estudiante_evaluado_id === estudianteId &&
+                respuesta.pregunta_id === preguntaActual.id &&
+                respuesta.cuestionario_id === cuestionarioId
+              );
+              
+              // No permitir cambios si ya fue seleccionado previamente
+              if (yaSeleccionado) {
+                return;
+              }
+              
               setEstudiantesSeleccionados(prev => {
                 const actual = prev[key] || [];
                 if (actual.includes(estudianteId)) {
@@ -568,23 +741,38 @@ export default function CuestionarioEstudiante() {
                     {estudiantesDelCurso.length === 0 ? (
                       <p>No hay estudiantes disponibles para seleccionar.</p>
                     ) : (
-                      estudiantesDelCurso.map((estudiante) => (
-                        <div key={estudiante.id} className="cuestionario-estudiante-item">
-                          <input
-                            type="checkbox"
-                            id={`estudiante-${estudiante.id}-${key}`}
-                            checked={estudiantesSeleccionadosParaPregunta.includes(estudiante.id)}
-                            onChange={() => handleEstudianteCheckboxChange(estudiante.id)}
-                            className="cuestionario-estudiante-checkbox"
-                          />
-                          <label 
-                            htmlFor={`estudiante-${estudiante.id}-${key}`} 
-                            className="cuestionario-estudiante-label"
-                          >
-                            {estudiante.nombre}
-                          </label>
-                        </div>
-                      ))
+                      estudiantesDelCurso.map((estudiante) => {
+                        // Verificar si este estudiante ya fue seleccionado previamente
+                        const yaSeleccionado = dataRespuestasEstudiante?.respuesta?.some((respuesta: any) => 
+                          respuesta.estudiante_id === data?.estudiante?.[0]?.id &&
+                          respuesta.estudiante_evaluado_id === estudiante.id &&
+                          respuesta.pregunta_id === preguntaActual.id &&
+                          respuesta.cuestionario_id === cuestionarioId
+                        );
+                        
+                        const estaSeleccionadoAhora = estudiantesSeleccionadosParaPregunta.includes(estudiante.id);
+                        const estaChecked = yaSeleccionado || estaSeleccionadoAhora;
+                        
+                        return (
+                          <div key={estudiante.id} className="cuestionario-estudiante-item">
+                            <input
+                              type="checkbox"
+                              id={`estudiante-${estudiante.id}-${key}`}
+                              checked={estaChecked}
+                              onChange={() => handleEstudianteCheckboxChange(estudiante.id)}
+                              disabled={yaSeleccionado}
+                              className={`cuestionario-estudiante-checkbox ${yaSeleccionado ? 'disabled' : ''}`}
+                            />
+                            <label 
+                              htmlFor={`estudiante-${estudiante.id}-${key}`} 
+                              className={`cuestionario-estudiante-label ${yaSeleccionado ? 'disabled' : ''}`}
+                            >
+                              {estudiante.nombre}
+                              {yaSeleccionado && <span className="ya-seleccionado"> (ya seleccionado previamente)</span>}
+                            </label>
+                          </div>
+                        );
+                      })
                     )}
                   </div>
                 </div>

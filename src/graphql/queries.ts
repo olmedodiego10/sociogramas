@@ -139,3 +139,24 @@ export const GET_RESPUESTAS_QUERY = gql`
     }
   }
 `;
+
+// Obtener respuestas de un estudiante específico por su ID
+export const GET_RESPUESTAS_BY_ESTUDIANTE_ID_QUERY = gql`
+  query GetRespuestasByEstudianteId($estudiante_id: uuid!) {
+    respuesta(
+      where: {
+        estudiante_id: {_eq: $estudiante_id}
+      }
+    ) {
+      id
+      estudiante_id
+      estudiante_evaluado_id
+      opcion_pregunta_id
+      otro_texto
+      created_at
+      updated_at
+      cuestionario_id
+      pregunta_id
+    }
+  }
+`;
