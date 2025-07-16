@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLazyQuery, useMutation } from "@apollo/client";
 import { GET_ESTUDIANTE_BY_CODIGO_QUERY } from "@/graphql/queries";
-import { GET_CLASES_QUERY } from "@/graphql/queries";
 import { GET_ESTUDIANTES_QUERY } from "@/graphql/queries";
 import { GET_RESPUESTAS_BY_ESTUDIANTE_ID_QUERY } from "@/graphql/queries";
 import { UPSERT_RESPUESTA_MUTATION } from "@/graphql/mutations";
@@ -45,7 +44,6 @@ export default function CuestionarioEstudiante() {
   } = usePreguntasConOpciones();
 
   const [getEstudiante, { data, loading, error }] = useLazyQuery(GET_ESTUDIANTE_BY_CODIGO_QUERY);
-  const [getClases, { data: dataClases }] = useLazyQuery(GET_CLASES_QUERY);
   const [getEstudiantes, { data: dataEstudiantes }] = useLazyQuery(GET_ESTUDIANTES_QUERY);
   const [getRespuestasEstudiante, { data: dataRespuestasEstudiante }] = useLazyQuery(GET_RESPUESTAS_BY_ESTUDIANTE_ID_QUERY);
 
@@ -61,12 +59,11 @@ export default function CuestionarioEstudiante() {
           const cuestionarioIdEst = estudiante.cuestionario_id;
           setCuestionarioId(cuestionarioIdEst);
           if (claseIdEst) {
-            getClases({ variables: { claseId: claseIdEst } });
             getEstudiantes({ variables: { claseId: claseIdEst } });
           }
         }
       });
-  }, [codigoEstudiante, getEstudiante, getClases, getEstudiantes]);
+  }, [codigoEstudiante, getEstudiante, getEstudiantes]);
 
   // useEffect para cargar respuestas existentes del estudiante
   useEffect(() => {
@@ -204,8 +201,8 @@ export default function CuestionarioEstudiante() {
 
   // Buscar identificador de la clase
   let identificadorClase = "";
-  if (dataClases && dataClases.clase && dataClases.clase.length > 0) {
-    identificadorClase = dataClases.clase[0].identificador;
+  if (data && data.estudiante && data.estudiante.length > 0 && data.estudiante[0].clase) {
+    identificadorClase = data.estudiante[0].clase.identificador;
   }
   // Mutaciones para respuestas
   const [upsertRespuesta] = useMutation(UPSERT_RESPUESTA_MUTATION);

@@ -58,6 +58,10 @@ export const GET_ESTUDIANTE_BY_CODIGO_QUERY = gql`
       codigo_estudiante
       cuestionario_id
       clase_id
+      clase {
+        id
+        identificador
+      }
     }
   }
 `;
