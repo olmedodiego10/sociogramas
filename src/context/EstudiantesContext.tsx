@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useQuery, useLazyQuery } from '@apollo/client';
-import { GET_ESTUDIANTES_QUERY, GET_CUESTIONARIOS_QUERY, GET_ID_ULTIMA_PREGUNTA_QUERY } from '@/graphql/queries';
+import { GET_ESTUDIANTES_QUERY, GET_CUESTIONARIOS_DE_UNA_CLASE_QUERY, GET_ID_ULTIMA_PREGUNTA_QUERY } from '@/graphql/queries';
 
 // Define the type for a student
 export type Estudiante = {
@@ -65,7 +65,7 @@ export function EstudiantesProvider({ children }: { children: ReactNode }) {
     data: cuestionariosData, 
     loading: loadingCuestionario, 
     refetch: refetchCuestionarioQuery 
-  } = useQuery(GET_CUESTIONARIOS_QUERY, {
+  } = useQuery(GET_CUESTIONARIOS_DE_UNA_CLASE_QUERY, {
     variables: { claseId: claseActual },
     skip: !claseActual,
     fetchPolicy: 'network-only',

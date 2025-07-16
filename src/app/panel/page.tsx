@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@apollo/client";
 import { CREATE_CLASE_MUTATION, CREATE_CUESTIONARIO_MUTATION, UPDATE_CUESTIONARIO_ESTADO_MUTATION, UPDATE_ESTUDIANTE_CUESTIONARIO_MUTATION } from "@/graphql/mutations";
-import { GET_CLASES_QUERY, GET_CUESTIONARIOS_QUERY } from "@/graphql/queries";
+import { GET_CLASES_QUERY, GET_CUESTIONARIOS_DE_UNA_CLASE_QUERY } from "@/graphql/queries";
 import '../sociogramas.css';
 import Link from "next/link";
 import { useEstudiantes } from "@/context/EstudiantesContext";
@@ -32,7 +32,7 @@ function Panel() {
       for (const cl of clasesData.clase) {
         try {
           const { data } = await client.query({
-            query: GET_CUESTIONARIOS_QUERY,
+            query: GET_CUESTIONARIOS_DE_UNA_CLASE_QUERY,
             variables: { claseId: cl.id },
             fetchPolicy: 'network-only',
           });
@@ -92,7 +92,7 @@ function Panel() {
   const refrescarCuestionariosClase = async (claseId: string) => {
     try {
       const { data } = await client.query({
-        query: GET_CUESTIONARIOS_QUERY,
+        query: GET_CUESTIONARIOS_DE_UNA_CLASE_QUERY,
         variables: { claseId },
         fetchPolicy: 'network-only',
       });
