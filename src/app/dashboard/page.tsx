@@ -50,11 +50,14 @@ export default function DashboardPage() {
     } = useRespuestas();
     
     const {
-        loading: loadingPreguntaAfinidad
+        loading: loadingPreguntaAfinidad,
+        getPreguntasMultipleSeleccion
     } = usePreguntasConOpciones();
     
     // Estados para almacenar datos filtrados
     const [respuestasAfinidad, setRespuestasAfinidad] = useState<any[]>([]);
+    const [respuestasAdicionales, setRespuestasAdicionales] = useState<any[]>([]);
+    const [preguntasAdicionales, setPreguntasAdicionales] = useState<any[]>([]);
     
     // Estados para las estadísticas de tipos de respuestas
     const [contadorRespuestas, setContadorRespuestas] = useState({
@@ -79,8 +82,19 @@ export default function DashboardPage() {
                 (r: any) => r.pregunta_id === idPreguntaAfinidad
             ) || [];
             
-            // Actualizar estado con las respuestas de afinidad
+            // Obtener preguntas adicionales (selección múltiple)
+            const preguntasAdicionalesData = getPreguntasMultipleSeleccion(2); // A partir de la pregunta 2
+            setPreguntasAdicionales(preguntasAdicionalesData);
+            
+            // Filtrar respuestas de preguntas adicionales
+            const idsPreguntasAdicionales = preguntasAdicionalesData.map(p => p.id);
+            const respuestasDeAdicionales = respuestasData.respuesta?.filter(
+                (r: any) => idsPreguntasAdicionales.includes(r.pregunta_id)
+            ) || [];
+            
+            // Actualizar estados
             setRespuestasAfinidad(respuestasDeAfinidad);
+            setRespuestasAdicionales(respuestasDeAdicionales);
             
             // Contar respuestas por tipo (verde, amarillo, rojo, blanco)
             if (respuestasData.opcion_pregunta && Array.isArray(respuestasData.opcion_pregunta)) {
@@ -117,6 +131,8 @@ export default function DashboardPage() {
         } else if (respuestasError || !idPreguntaAfinidad) {
             // Si hay error o no hay pregunta de afinidad, reiniciar estados
             setRespuestasAfinidad([]);
+            setRespuestasAdicionales([]);
+            setPreguntasAdicionales([]);
             setContadorRespuestas({
                 verde: 0,
                 amarillo: 0,
@@ -125,7 +141,7 @@ export default function DashboardPage() {
                 total: 0
             });
         }
-    }, [respuestasData, idPreguntaAfinidad, respuestasError]);
+    }, [respuestasData, idPreguntaAfinidad, respuestasError, getPreguntasMultipleSeleccion]);
 
     // Redirigir al panel si no hay clase seleccionada
     useEffect(() => {
@@ -192,6 +208,7 @@ export default function DashboardPage() {
                                             </div>
                                         ) : (
                                             <div className="afinidad-respuestas-container">
+                                                <h4>Respuestas por afinidad</h4>
                                                 
                                                 {/* Estadísticas de respuestas por tipo */}
                                                 <div className="estadisticas-container">
@@ -354,6 +371,120 @@ export default function DashboardPage() {
                                     <p>No se encontró la pregunta de afinidad.</p>
                                 )}
                             </div>
+                            
+                            {/* Sección de Respuestas Adicionales */}
+                            {preguntasAdicionales.length > 0 && (
+                                <div className="respuestas-adicionales-container">
+                                    <h4>Respuestas a preguntas adicionales</h4>
+                                    
+                                    {loadingRespuestas ? (
+                                        <p>Cargando respuestas adicionales...</p>
+                                    ) : respuestasError ? (
+                                        <div className="afinidad-error-container">
+                                            <p><strong>Error al cargar respuestas adicionales:</strong> {respuestasError.message}</p>
+                                            <button 
+                                                onClick={refetchRespuestas}
+                                                className="afinidad-retry-btn"
+                                            >
+                                                Reintentar
+                                            </button>
+                                        </div>
+                                    ) : respuestasAdicionales.length > 0 ? (
+                                        <div className="respuestas-adicionales-content">
+                                            <details>
+                                                <summary className="afinidad-details-summary">
+                                                    Ver respuestas a preguntas adicionales ({respuestasAdicionales.length} respuestas)
+                                                </summary>
+                                                <div className="afinidad-details-content">
+                                                    
+                                                    {/* Agrupar por pregunta */}
+                                                    {preguntasAdicionales.map(pregunta => {
+                                                        const respuestasDePregunta = respuestasAdicionales.filter(
+                                                            r => r.pregunta_id === pregunta.id
+                                                        );
+                                                        
+                                                        if (respuestasDePregunta.length === 0) return null;
+                                                        
+                                                        return (
+                                                            <div key={pregunta.id} className="pregunta-adicional-container">
+                                                                <h5>{pregunta.texto || 'Sin texto'}</h5>
+                                                                
+                                                                <div className="respuestas-table-container">
+                                                                    <table className="respuestas-table">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Estudiante</th>
+                                                                                <th>Respuestas</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            {(() => {
+                                                                                // Agrupar respuestas por estudiante
+                                                                                const respuestasPorEstudiante = new Map();
+                                                                                respuestasDePregunta.forEach(resp => {
+                                                                                    const estudianteId = resp.estudiante_id;
+                                                                                    if (!respuestasPorEstudiante.has(estudianteId)) {
+                                                                                        respuestasPorEstudiante.set(estudianteId, []);
+                                                                                    }
+                                                                                    respuestasPorEstudiante.get(estudianteId).push(resp);
+                                                                                });
+                                                                                
+                                                                                return Array.from(respuestasPorEstudiante).map(([estudianteId, respuestasEstudiante]) => {
+                                                                                    const estudiante = estudiantes.find(est => est.id === estudianteId);
+                                                                                    
+                                                                                    return (
+                                                                                        <tr key={estudianteId}>
+                                                                                            <td>
+                                                                                                <strong>
+                                                                                                    {estudiante ? estudiante.nombre : "Estudiante desconocido"}
+                                                                                                </strong>
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <div className="respuestas-estudiante-lista">
+                                                                                                    {respuestasEstudiante.map((resp: any) => {
+                                                                                                        const estudianteEvaluado = estudiantes.find(est => est.id === resp.estudiante_evaluado_id);
+                                                                                                        const opcion = respuestasData.opcion_pregunta?.find((op: any) => op.id === resp.opcion_pregunta_id);
+                                                                                                        
+                                                                                                        return (
+                                                                                                            <div key={resp.id} className="respuesta-item">
+                                                                                                                <span className="evaluado-nombre">
+                                                                                                                    {estudianteEvaluado ? estudianteEvaluado.nombre : "Estudiante desconocido"}
+                                                                                                                </span>
+                                                                                                                {opcion && (
+                                                                                                                    <div className="opcion-badge">
+                                                                                                                        {opcion.texto_opcion}
+                                                                                                                    </div>
+                                                                                                                )}
+                                                                                                                {resp.otro_texto && (
+                                                                                                                    <div className="otro-texto">
+                                                                                                                        "{resp.otro_texto}"
+                                                                                                                    </div>
+                                                                                                                )}
+                                                                                                            </div>
+                                                                                                        );
+                                                                                                    })}
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    );
+                                                                                });
+                                                                            })()}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </details>
+                                        </div>
+                                    ) : (
+                                        <div className="no-respuestas-mensaje">
+                                            <p>No hay respuestas a preguntas adicionales registradas todavía.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
                       <ul className="dashboard-students-list">
