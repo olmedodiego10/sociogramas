@@ -20,9 +20,7 @@ export default function EstudiantesPage() {
         loading: loadingEstudiantes, 
         refetchEstudiantes, 
         cuestionarioActual,
-        loadingCuestionario,
-        ultimaPreguntaId,
-        loadingUltimaPregunta
+        loadingCuestionario
     } = useEstudiantes();
     const { setCuestionarioActual } = useRespuestas();
     const [nombre, setNombre] = useState("");
