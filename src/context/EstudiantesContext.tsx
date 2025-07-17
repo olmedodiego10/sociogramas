@@ -76,33 +76,33 @@ export function EstudiantesProvider({ children }: { children: ReactNode }) {
   }, [cuestionariosData]);
 
   // Set class ID and fetch students
-  const setClaseActual = (claseId: string | null, identificador: string | null) => {
+  const setClaseActual = React.useCallback((claseId: string | null, identificador: string | null) => {
     setClaseIdActual(claseId);
     setIdentificadorClase(identificador);
     if (claseId) {
       fetchEstudiantes({ variables: { claseId } });
     }
-  };
+  }, [fetchEstudiantes]);
 
   // Function to manually refetch students data
-  const refetchEstudiantes = async () => {
+  const refetchEstudiantes = React.useCallback(async () => {
     if (claseActual) {
       await refetch({ claseId: claseActual });
     }
-  };
+  }, [claseActual, refetch]);
 
   // Function to manually refetch cuestionario data
-  const refetchCuestionario = async () => {
+  const refetchCuestionario = React.useCallback(async () => {
     if (claseActual) {
       await refetchCuestionarioQuery({ claseId: claseActual });
     }
-  };
+  }, [claseActual, refetchCuestionarioQuery]);
 
   // Extract estudiantes from query data or default to empty array
   const estudiantes = data?.estudiante || [];
 
-  // Context value
-  const value = {
+  // Context value memoizado para evitar renders innecesarios
+  const value = React.useMemo(() => ({
     estudiantes,
     claseActual,
     identificadorClase,
@@ -113,7 +113,16 @@ export function EstudiantesProvider({ children }: { children: ReactNode }) {
     setClaseActual,
     refetchEstudiantes,
     refetchCuestionario,
-  };
+  }), [
+    estudiantes,
+    claseActual,
+    identificadorClase,
+    loading,
+    error,
+    cuestionarioActual,
+    loadingCuestionario
+    // No incluimos las funciones porque son estables
+  ]);
 
   return (
     <EstudiantesContext.Provider value={value}>

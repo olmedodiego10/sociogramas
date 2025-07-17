@@ -81,8 +81,15 @@ export function PreguntasConOpcionesProvider({ children }: { children: ReactNode
 
   // Helper function para obtener la pregunta de afinidad
   const getPreguntaAfinidad = useMemo(() => () => {
-    return getPreguntaPorTipoYNumero("AFINIDAD_ESTUDIANTE", 1);
-  }, [getPreguntaPorTipoYNumero]);
+    if (!preguntasData?.pregunta) return null;
+    
+    return (preguntasData.pregunta as Array<{ 
+      id: string; 
+      texto: string; 
+      tipo_pregunta: string; 
+      numero_pregunta: number;
+    }>).find(p => p.tipo_pregunta === "AFINIDAD_ESTUDIANTE" && p.numero_pregunta === 1) || null;
+  }, [preguntasData]);
 
   // Helper function para obtener preguntas de selección múltiple
   const getPreguntasMultipleSeleccion = useMemo(() => (numeroMinimo: number = 1) => {
@@ -111,11 +118,8 @@ export function PreguntasConOpcionesProvider({ children }: { children: ReactNode
     preguntasData, 
     opcionesPreguntaData, 
     loading, 
-    error, 
-    getPreguntaPorTipoYNumero, 
-    getOpcionesPorPreguntaId, 
-    getPreguntaAfinidad, 
-    getPreguntasMultipleSeleccion
+    error
+    // Removemos las funciones de las dependencias para evitar ciclos infinitos
   ]);
 
   return (

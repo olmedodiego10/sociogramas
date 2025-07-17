@@ -33,18 +33,27 @@ export const useRespuestas = () => useContext(RespuestasContext);
 // Provider component
 export function RespuestasProvider({ children }: { children: ReactNode }) {
   const [cuestionarioActual, setCuestionarioIdActual] = useState<string | null>(null);
-  const { getPreguntaAfinidad } = usePreguntasConOpciones();
+  const { getPreguntaAfinidad, preguntasData } = usePreguntasConOpciones();
   
   // Use lazy query to fetch responses only when we have a cuestionario ID
   const [fetchRespuestas, { data: respuestasData, loading, error, refetch }] = useLazyQuery(GET_RESPUESTAS_QUERY, {
     fetchPolicy: 'network-only',
   });
 
-  // Obtener el ID de la pregunta de afinidad desde el contexto de preguntas
+  // Obtener el ID de la pregunta de afinidad directamente de los datos
   const idPreguntaAfinidad = useMemo(() => {
-    const preguntaAfinidad = getPreguntaAfinidad();
+    // Buscar directamente en preguntasData sin usar la función
+    if (!preguntasData?.pregunta) return null;
+    
+    const preguntaAfinidad = (preguntasData.pregunta as Array<{ 
+      id: string; 
+      texto: string; 
+      tipo_pregunta: string; 
+      numero_pregunta: number;
+    }>).find(p => p.tipo_pregunta === "AFINIDAD_ESTUDIANTE" && p.numero_pregunta === 1);
+    
     return preguntaAfinidad?.id || null;
-  }, [getPreguntaAfinidad]);
+  }, [preguntasData]); // Solo dependemos de preguntasData
 
   // Set cuestionario ID and fetch responses
   const setCuestionarioActual = useCallback((cuestionarioId: string | null) => {
@@ -52,14 +61,14 @@ export function RespuestasProvider({ children }: { children: ReactNode }) {
     if (cuestionarioId) {
       fetchRespuestas({ variables: { cuestionario_id: cuestionarioId } });
     }
-  }, [fetchRespuestas]);
+  }, []); // Removemos fetchRespuestas de las dependencias
 
   // Function to manually refetch responses data
   const refetchRespuestas = useCallback(async () => {
     if (cuestionarioActual) {
       await refetch({ cuestionario_id: cuestionarioActual });
     }
-  }, [cuestionarioActual, refetch]);
+  }, [cuestionarioActual]); // Removemos refetch de las dependencias
 
   // Context value
   const value = useMemo(() => ({
@@ -70,7 +79,7 @@ export function RespuestasProvider({ children }: { children: ReactNode }) {
     idPreguntaAfinidad,
     setCuestionarioActual,
     refetchRespuestas,
-  }), [respuestasData, loading, error, cuestionarioActual, idPreguntaAfinidad, setCuestionarioActual, refetchRespuestas]);
+  }), [respuestasData, loading, error, cuestionarioActual, idPreguntaAfinidad]); // Removemos las funciones de las dependencias
 
   return (
     <RespuestasContext.Provider value={value}>
