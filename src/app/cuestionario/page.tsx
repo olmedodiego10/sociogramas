@@ -2,6 +2,7 @@
 import React, { useEffect, useCallback, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLazyQuery, useMutation } from "@apollo/client";
+import Link from "next/link";
 import { GET_ESTUDIANTE_BY_CODIGO_QUERY } from "@/graphql/queries";
 import { GET_RESPUESTAS_BY_ESTUDIANTE_ID_QUERY } from "@/graphql/queries";
 import { UPSERT_RESPUESTA_MUTATION } from "@/graphql/mutations";
@@ -619,7 +620,7 @@ const CuestionarioEstudiante = React.memo(() => {
             <hr className="cuestionario-separador" />
             <div className="cuestionario-centrar-boton">
               <button className="panel-btn" onClick={() => setMostrarPreguntas(true)}>
-                Comenzar
+                Continuar
               </button>
             </div>
           </div>
@@ -946,6 +947,13 @@ const CuestionarioEstudiante = React.memo(() => {
           <button className="panel-btn cuestionario-boton-finalizado" onClick={handleVolverInicio}>
             Volver al inicio
           </button>
+        </div>
+      )}
+      {!finalizado && (
+        <div style={{ textAlign: 'center', marginTop: 16 }}>
+          <Link href="/" className="login-link">
+            Regresar al inicio
+          </Link>
         </div>
       )}
     </>
