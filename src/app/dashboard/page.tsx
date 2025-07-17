@@ -29,6 +29,28 @@ const getOptionClass = (texto: string) => {
     return 'opcion-badge';
 };
 
+// Función para obtener la clase CSS basada en el número de pregunta
+const getRespuestaClass = (numeroPregunta: number) => {
+    if ([2, 5, 6, 7].includes(numeroPregunta)) return 'respuesta-recibida-item respuesta-verde';
+    if (numeroPregunta === 3) return 'respuesta-recibida-item respuesta-amarilla';
+    if (numeroPregunta === 4) return 'respuesta-recibida-item respuesta-roja';
+    if ([8, 9, 10].includes(numeroPregunta)) return 'respuesta-recibida-item respuesta-gris';
+    return 'respuesta-recibida-item'; // Color por defecto
+};
+
+// Función para obtener el texto descriptivo de la pregunta
+const getTextoDescriptivoPregunta = (numeroPregunta: number) => {
+    const mapeoPreguntas: { [key: number]: string } = {
+        5: "Ayudan a que el grupo funcione bien",
+        6: "Hace sentir parte del grupo cuando trabaja",
+        7: "Suele toma el rol de líder",
+        8: "Suelen quedarse sin grupo o no ser elegido/a",
+        9: "Necesita más apoyo para poder trabajar mejor en grupo",
+        10: "Cuesta más trabajar en grupo"
+    };
+    return mapeoPreguntas[numeroPregunta] || null;
+};
+
 export default function DashboardPage() {
     const router = useRouter();
     const { 
@@ -488,28 +510,73 @@ export default function DashboardPage() {
                         </div>
                     )}
                       <ul className="dashboard-students-list">
-                        {estudiantes.map((est) => (
-                            <li key={est.id}>
-                                <div>
-                                    <span className="student-name">{est.nombre}</span>
-                                    <div className="student-code">
-                                        Código estudiante: <span className="code-value">{est.codigo_estudiante}</span>
+                        {estudiantes.map((est) => {
+                            // Calcular respuestas recibidas por este estudiante
+                            const respuestasRecibidas = respuestasAdicionales.filter(
+                                r => r.estudiante_evaluado_id === est.id
+                            );
+                            
+                            // Contar opciones recibidas
+                            const contadorOpciones = new Map();
+                            respuestasRecibidas.forEach(resp => {
+                                const opcion = respuestasData?.opcion_pregunta?.find(
+                                    (op: any) => op.id === resp.opcion_pregunta_id
+                                );
+                                if (opcion) {
+                                    const texto = opcion.texto_opcion;
+                                    
+                                    // Encontrar el número de pregunta
+                                    const pregunta = preguntasAdicionales.find(p => p.id === resp.pregunta_id);
+                                    const numeroPregunta = pregunta?.numero_pregunta || 0;
+                                    
+                                    // Crear una clave única que incluye el texto y el número de pregunta
+                                    const clave = `${texto}|${numeroPregunta}`;
+                                    contadorOpciones.set(clave, (contadorOpciones.get(clave) || 0) + 1);
+                                }
+                            });
+                            
+                            return (
+                                <li key={est.id}>
+                                    <div>
+                                        <span className="student-name">{est.nombre}</span>
+                                        <div className="student-code">
+                                            Código estudiante: <span className="code-value">{est.codigo_estudiante}</span>
+                                        </div>
+                                        <EstadoCuestionario 
+                                            estudianteId={est.id} 
+                                            cuestionarioId={est.cuestionario_id}
+                                        />
+                                        
+                                        {/* Mostrar respuestas recibidas */}
+                                        {contadorOpciones.size > 0 && (
+                                            <div className="respuestas-recibidas">
+                                                <strong>Respuestas recibidas:</strong>
+                                                <div>
+                                                    {Array.from(contadorOpciones).map(([claveOpcion, cantidad]) => {
+                                                        // Separar el texto de la opción y el número de pregunta
+                                                        const [opcionTexto, numeroPreguntaStr] = claveOpcion.split('|');
+                                                        const numeroPregunta = parseInt(numeroPreguntaStr);
+                                                        
+                                                        // Obtener texto descriptivo si está disponible
+                                                        const textoDescriptivo = getTextoDescriptivoPregunta(numeroPregunta);
+                                                        const textoAMostrar = textoDescriptivo || opcionTexto;
+                                                        
+                                                        return (
+                                                            <div 
+                                                                key={claveOpcion} 
+                                                                className={getRespuestaClass(numeroPregunta)}
+                                                            >
+                                                                {textoAMostrar} x{cantidad}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                    <EstadoCuestionario 
-                                        estudianteId={est.id} 
-                                        cuestionarioId={est.cuestionario_id}
-                                    />
-                                </div>
-                                {est.cuestionario_id && (
-                                    <span 
-                                        className="student-has-questionnaire" 
-                                        title={`Cuestionario asignado: ${est.cuestionario_id}`}
-                                    >
-                                        {est.cuestionario_id === cuestionarioActual?.id ? '✅ Actual' : '📝 Otro'}
-                                    </span>
-                                )}
-                            </li>
-                        ))}
+                                </li>
+                            );
+                        })}
                     </ul>
                 </div>
             )}

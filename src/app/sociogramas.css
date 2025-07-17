@@ -1305,20 +1305,103 @@ details[open] > .evaluaciones-summary:before {
   }
 }
 
-/* Estilos para títulos de secciones de respuestas */
-.afinidad-respuestas-container h4,
-.respuestas-adicionales-container h4 {
-  color: #2196F3;
-  font-weight: 600;
-  margin-bottom: 16px;
-  font-size: 1.2em;
-  text-align: center;
-  border-bottom: 2px solid #2196F3;
-  padding-bottom: 8px;
+/* Estilos para respuestas recibidas en la lista de estudiantes */
+.respuestas-recibidas {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #28a745;
 }
 
-/* Estilos específicos para respuestas de afinidad */
-.afinidad-respuestas-container h4 {
-  color: #4CAF50;
-  border-bottom-color: #4CAF50;
+.respuestas-recibidas strong {
+  color: #155724;
+  font-size: 0.9em;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Contenedor horizontal para las respuestas */
+.respuestas-recibidas > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.respuesta-recibida-item {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.85em;
+  border: 1px solid #c3e6cb;
+  white-space: nowrap;
+  display: inline-block;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease;
+}
+
+.respuesta-recibida-item:hover {
+  background-color: #c3e6cb;
+}
+
+/* Colores específicos por número de pregunta */
+.respuesta-verde {
+  background-color: #d4edda;
+  color: #155724;
+  border-color: #c3e6cb;
+}
+
+.respuesta-verde:hover {
+  background-color: #c3e6cb;
+}
+
+.respuesta-amarilla {
+  background-color: #fff3cd;
+  color: #856404;
+  border-color: #ffeaa7;
+}
+
+.respuesta-amarilla:hover {
+  background-color: #ffeaa7;
+}
+
+.respuesta-roja {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-color: #f5c6cb;
+}
+
+.respuesta-roja:hover {
+  background-color: #f5c6cb;
+}
+
+.respuesta-gris {
+  background-color: #e2e3e5;
+  color: #383d41;
+  border-color: #d6d8db;
+}
+
+.respuesta-gris:hover {
+  background-color: #d6d8db;
+}
+
+/* Responsive para respuestas recibidas */
+@media (max-width: 768px) {
+  .respuestas-recibidas {
+    padding: 6px;
+    margin-top: 6px;
+  }
+  
+  .respuesta-recibida-item {
+    font-size: 0.8em;
+    padding: 4px 8px;
+  }
+  
+  /* En móviles, permitir que se envuelvan pero manteniendo el diseño horizontal */
+  .respuestas-recibidas > div {
+    gap: 4px;
+  }
 }
