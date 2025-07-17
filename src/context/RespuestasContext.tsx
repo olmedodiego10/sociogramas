@@ -37,7 +37,8 @@ export function RespuestasProvider({ children }: { children: ReactNode }) {
   
   // Use lazy query to fetch responses only when we have a cuestionario ID
   const [fetchRespuestas, { data: respuestasData, loading, error, refetch }] = useLazyQuery(GET_RESPUESTAS_QUERY, {
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-and-network', // Cambiado de 'network-only' para mejor rendimiento
+    errorPolicy: 'all', // Permite manejar errores parciales
   });
 
   // Obtener el ID de la pregunta de afinidad directamente de los datos
