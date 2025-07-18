@@ -41,7 +41,7 @@ const getRespuestaClass = (numeroPregunta: number) => {
 // Función para obtener el texto descriptivo de la pregunta
 const getTextoDescriptivoPregunta = (numeroPregunta: number) => {
     const mapeoPreguntas: { [key: number]: string } = {
-        5: "Ayudan a que el grupo funcione bien",
+        5: "Ayuda a que el grupo funcione bien",
         6: "Hace sentir parte del grupo cuando trabaja",
         7: "Suele toma el rol de líder",
         8: "Suelen quedarse sin grupo o no ser elegido/a",
@@ -520,22 +520,35 @@ export default function DashboardPage() {
                                 r => r.estudiante_evaluado_id === est.id
                             );
                             
-                            // Contar opciones recibidas
+                            // Contar opciones recibidas (para preguntas 1-4 que tienen opciones)
                             const contadorOpciones = new Map();
+                            // Contar respuestas directas (para preguntas 5-10 que referencian estudiantes)
+                            const contadorRespuestasDirectas = new Map();
+                            
                             respuestasRecibidas.forEach(resp => {
-                                const opcion = respuestasData?.opcion_pregunta?.find(
-                                    (op: any) => op.id === resp.opcion_pregunta_id
-                                );
-                                if (opcion) {
-                                    const texto = opcion.texto_opcion;
-                                    
-                                    // Encontrar el número de pregunta
-                                    const pregunta = preguntasAdicionales.find(p => p.id === resp.pregunta_id);
-                                    const numeroPregunta = pregunta?.numero_pregunta || 0;
-                                    
-                                    // Crear una clave única que incluye el texto y el número de pregunta
-                                    const clave = `${texto}|${numeroPregunta}`;
-                                    contadorOpciones.set(clave, (contadorOpciones.get(clave) || 0) + 1);
+                                // Encontrar el número de pregunta
+                                const pregunta = preguntasAdicionales.find(p => p.id === resp.pregunta_id);
+                                const numeroPregunta = pregunta?.numero_pregunta || 0;
+                                
+                                // Si la respuesta tiene opcion_pregunta_id, es una pregunta con opciones (1-4)
+                                if (resp.opcion_pregunta_id) {
+                                    const opcion = respuestasData?.opcion_pregunta?.find(
+                                        (op: any) => op.id === resp.opcion_pregunta_id
+                                    );
+                                    if (opcion) {
+                                        const texto = opcion.texto_opcion;
+                                        // Crear una clave única que incluye el texto y el número de pregunta
+                                        const clave = `${texto}|${numeroPregunta}`;
+                                        contadorOpciones.set(clave, (contadorOpciones.get(clave) || 0) + 1);
+                                    }
+                                } else {
+                                    // Si no tiene opcion_pregunta_id, es una pregunta directa (5-10)
+                                    // Usar el texto descriptivo de la pregunta
+                                    const textoDescriptivo = getTextoDescriptivoPregunta(numeroPregunta);
+                                    if (textoDescriptivo) {
+                                        const clave = `${textoDescriptivo}|${numeroPregunta}`;
+                                        contadorRespuestasDirectas.set(clave, (contadorRespuestasDirectas.get(clave) || 0) + 1);
+                                    }
                                 }
                             });
                             
@@ -554,10 +567,11 @@ export default function DashboardPage() {
                                         </div>
                                         
                                         {/* Mostrar respuestas recibidas */}
-                                        {contadorOpciones.size > 0 && (
+                                        {(contadorOpciones.size > 0 || contadorRespuestasDirectas.size > 0) && (
                                             <div className="respuestas-recibidas">
                                                 <strong>Respuestas recibidas:</strong>
                                                 <div>
+                                                    {/* Mostrar respuestas con opciones (preguntas 1-4) */}
                                                     {Array.from(contadorOpciones).map(([claveOpcion, cantidad]) => {
                                                         // Separar el texto de la opción y el número de pregunta
                                                         const [opcionTexto, numeroPreguntaStr] = claveOpcion.split('|');
@@ -573,6 +587,22 @@ export default function DashboardPage() {
                                                                 className={getRespuestaClass(numeroPregunta)}
                                                             >
                                                                 {textoAMostrar} x{cantidad}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                    
+                                                    {/* Mostrar respuestas directas (preguntas 5-10) */}
+                                                    {Array.from(contadorRespuestasDirectas).map(([claveRespuesta, cantidad]) => {
+                                                        // Separar el texto descriptivo y el número de pregunta
+                                                        const [textoDescriptivo, numeroPreguntaStr] = claveRespuesta.split('|');
+                                                        const numeroPregunta = parseInt(numeroPreguntaStr);
+                                                        
+                                                        return (
+                                                            <div 
+                                                                key={claveRespuesta} 
+                                                                className={getRespuestaClass(numeroPregunta)}
+                                                            >
+                                                                {textoDescriptivo} x{cantidad}
                                                             </div>
                                                         );
                                                     })}
