@@ -983,6 +983,94 @@ details[open] > .afinidad-details-summary:before {
   border: 1px solid #e0e0e0;
 }
 
+/* Estilos para el resumen de estadísticas sin recuadros */
+.stats-summary {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.stats-title {
+  color: #4CAF50;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  font-size: 1.4em;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.stats-info {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid #f0f0f0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 200px;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+  font-size: 2em;
+  opacity: 0.8;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-number {
+  font-size: 1.8em;
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9em;
+  color: #6c757d;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .stats-info {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .stat-item {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .stats-title {
+    font-size: 1.2em;
+  }
+}
+
 /* Estilos para estadísticas de respuestas */
 .estadisticas-container {
   display: flex;

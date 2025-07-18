@@ -269,7 +269,7 @@ function Panel() {
                     router.push('/grupos');
                   }}
                 >
-                  Grupos
+                  Grupos🚧
                 </button>
                 <Link
                   href="/dashboard"
@@ -285,7 +285,7 @@ function Panel() {
                   title="Eliminar clase"
                   // TODO: onClick para eliminar clase
                 >
-                  Eliminar
+                  Eliminar🚧
                 </button>
               </div>
             </div>

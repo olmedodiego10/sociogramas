@@ -191,15 +191,28 @@ export default function DashboardPage() {
                 <div className="loading-indicator">Cargando estudiantes...</div>
             ) : (
                 <div className="dashboard-content">
-                    <h3>Estudiantes en la clase ({estudiantes.length})</h3>
                     
                     {cuestionarioActual && (
                         <div className="cuestionario-stats">
-                            <p>
-                                <strong>Asignados al cuestionario:</strong> {
-                                    estudiantes.filter(est => est.cuestionario_id === cuestionarioActual.id).length
-                                } de {estudiantes.length} estudiantes
-                            </p>
+                            <div className="stats-summary">
+                                <h3 className="stats-title">📊 Resumen del Cuestionario</h3>
+                                <div className="stats-info">
+                                    <div className="stat-item">
+                                        <span className="stat-icon">👥</span>
+                                        <div className="stat-content">
+                                            <span className="stat-number">{estudiantes.filter(est => est.cuestionario_id === cuestionarioActual.id).length}</span>
+                                            <span className="stat-label">estudiantes asignados de <strong>{estudiantes.length}</strong> total</span>
+                                        </div>
+                                    </div>
+                                    <div className="stat-item">
+                                        <span className="stat-icon">📈</span>
+                                        <div className="stat-content">
+                                            <span className="stat-number">{Math.round((estudiantes.filter(est => est.cuestionario_id === cuestionarioActual.id).length / estudiantes.length) * 100)}%</span>
+                                            <span className="stat-label">de cobertura del cuestionario</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             
                             <div className="afinidad-info-container">
                                 {loadingPreguntaAfinidad ? (
