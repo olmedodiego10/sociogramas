@@ -509,8 +509,12 @@ export default function DashboardPage() {
                             )}
                         </div>
                     )}
-                      <ul className="dashboard-students-list">
-                        {estudiantes.map((est) => {
+                    
+                    {/* Sección de Detalle por Estudiante */}
+                    <div className="respuestas-adicionales-container">
+                        <h4>Detalle por cada estudiante</h4>
+                        <ul className="dashboard-students-list">
+                            {estudiantes.map((est) => {
                             // Calcular respuestas recibidas por este estudiante
                             const respuestasRecibidas = respuestasAdicionales.filter(
                                 r => r.estudiante_evaluado_id === est.id
@@ -539,13 +543,15 @@ export default function DashboardPage() {
                                 <li key={est.id}>
                                     <div>
                                         <span className="student-name">{est.nombre}</span>
-                                        <div className="student-code">
-                                            Código estudiante: <span className="code-value">{est.codigo_estudiante}</span>
+                                        <div className="student-info-row">
+                                            <div className="student-code">
+                                                Código estudiante: <span className="code-value">{est.codigo_estudiante}</span>
+                                            </div>
+                                            <EstadoCuestionario 
+                                                estudianteId={est.id} 
+                                                cuestionarioId={est.cuestionario_id}
+                                            />
                                         </div>
-                                        <EstadoCuestionario 
-                                            estudianteId={est.id} 
-                                            cuestionarioId={est.cuestionario_id}
-                                        />
                                         
                                         {/* Mostrar respuestas recibidas */}
                                         {contadorOpciones.size > 0 && (
@@ -577,7 +583,8 @@ export default function DashboardPage() {
                                 </li>
                             );
                         })}
-                    </ul>
+                        </ul>
+                    </div>
                 </div>
             )}
             

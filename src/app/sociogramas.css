@@ -1518,3 +1518,19 @@ details[open] > .evaluaciones-summary:before {
   color: #4CAF50;
   border-bottom-color: #4CAF50;
 }
+
+/* Estilos para la información de estudiantes en el dashboard */
+.student-info-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* Responsive para información de estudiantes */
+@media (max-width: 768px) {
+  .student-info-row {
+    gap: 8px;
+  }
+}
