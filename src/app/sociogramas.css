@@ -1405,3 +1405,116 @@ details[open] > .evaluaciones-summary:before {
     gap: 4px;
   }
 }
+
+/* Estilos para la sección de respuestas adicionales */
+.respuestas-adicionales-container {
+  margin-top: 24px;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.respuestas-adicionales-content {
+  margin-top: 16px;
+}
+
+.pregunta-adicional-container {
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.pregunta-adicional-container h5 {
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 12px;
+  font-size: 1.1em;
+  padding: 8px;
+  background-color: #e3f2fd;
+  border-radius: 4px;
+  border-left: 4px solid #2196F3;
+}
+
+.respuestas-estudiante-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.respuesta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.evaluado-nombre {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.95em;
+}
+
+.respuesta-item .opcion-badge {
+  background-color: #6c757d;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  display: inline-block;
+  width: fit-content;
+}
+
+.otro-texto {
+  font-style: italic;
+  color: #6c757d;
+  font-size: 0.9em;
+  padding: 4px 8px;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  border-left: 3px solid #6c757d;
+}
+
+/* Responsive para respuestas adicionales */
+@media (max-width: 768px) {
+  .respuestas-adicionales-container {
+    margin: 16px 0;
+    padding: 12px;
+  }
+
+  .pregunta-adicional-container {
+    padding: 12px;
+  }
+
+  .pregunta-adicional-container h5 {
+    font-size: 1em;
+  }
+
+  .respuesta-item {
+    padding: 6px;
+  }
+}
+
+/* Estilos para títulos de secciones de respuestas */
+.afinidad-respuestas-container h4,
+.respuestas-adicionales-container h4 {
+  color: #2196F3;
+  font-weight: 600;
+  margin-bottom: 16px;
+  font-size: 1.2em;
+  text-align: center;
+  border-bottom: 2px solid #2196F3;
+  padding-bottom: 8px;
+}
+
+/* Estilos específicos para respuestas de afinidad */
+.afinidad-respuestas-container h4 {
+  color: #4CAF50;
+  border-bottom-color: #4CAF50;
+}
