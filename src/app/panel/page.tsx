@@ -265,7 +265,6 @@ function Panel() {
                   className="panel-btn panel-btn-orange"
                   onClick={() => {
                     setClaseActual(cl.id, cl.identificador);
-                    // TODO: Add groups navigation here when the page is created
                     router.push('/grupos');
                   }}
                 >
