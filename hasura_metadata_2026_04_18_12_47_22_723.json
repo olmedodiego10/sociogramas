@@ -1,0 +1,347 @@
+{
+  "resource_version": 75,
+  "metadata": {
+    "version": 3,
+    "sources": [
+      {
+        "name": "default",
+        "kind": "postgres",
+        "tables": [
+          {
+            "table": {
+              "name": "clase",
+              "schema": "public"
+            },
+            "object_relationships": [
+              {
+                "name": "grupo",
+                "using": {
+                  "foreign_key_constraint_on": "grupo_id"
+                }
+              },
+              {
+                "name": "usuario",
+                "using": {
+                  "foreign_key_constraint_on": "usuario_id"
+                }
+              }
+            ],
+            "array_relationships": [
+              {
+                "name": "cuestionarios",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "clase_id",
+                    "table": {
+                      "name": "cuestionario",
+                      "schema": "public"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "estudiantes",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "clase_id",
+                    "table": {
+                      "name": "estudiante",
+                      "schema": "public"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "grupos",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "clase_id",
+                    "table": {
+                      "name": "grupo",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "cuestionario",
+              "schema": "public"
+            },
+            "object_relationships": [
+              {
+                "name": "clase",
+                "using": {
+                  "foreign_key_constraint_on": "clase_id"
+                }
+              },
+              {
+                "name": "estado_cuestionario",
+                "using": {
+                  "foreign_key_constraint_on": "estado"
+                }
+              }
+            ],
+            "array_relationships": [
+              {
+                "name": "respuesta",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "cuestionario_id",
+                    "table": {
+                      "name": "respuesta",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "estado_cuestionario",
+              "schema": "public"
+            },
+            "is_enum": true,
+            "array_relationships": [
+              {
+                "name": "cuestionarios",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "estado",
+                    "table": {
+                      "name": "cuestionario",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "estudiante",
+              "schema": "public"
+            },
+            "object_relationships": [
+              {
+                "name": "clase",
+                "using": {
+                  "foreign_key_constraint_on": "clase_id"
+                }
+              },
+              {
+                "name": "grupo",
+                "using": {
+                  "foreign_key_constraint_on": "grupo_id"
+                }
+              }
+            ],
+            "array_relationships": [
+              {
+                "name": "respuesta",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "estudiante_evaluado_id",
+                    "table": {
+                      "name": "respuesta",
+                      "schema": "public"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "respuestaByEstudianteId",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "estudiante_id",
+                    "table": {
+                      "name": "respuesta",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "grupo",
+              "schema": "public"
+            },
+            "object_relationships": [
+              {
+                "name": "clase",
+                "using": {
+                  "foreign_key_constraint_on": "clase_id"
+                }
+              }
+            ],
+            "array_relationships": [
+              {
+                "name": "clases",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "grupo_id",
+                    "table": {
+                      "name": "clase",
+                      "schema": "public"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "estudiantes",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "grupo_id",
+                    "table": {
+                      "name": "estudiante",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "opcion_pregunta",
+              "schema": "public"
+            },
+            "object_relationships": [
+              {
+                "name": "preguntum",
+                "using": {
+                  "foreign_key_constraint_on": "pregunta_id"
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "pregunta",
+              "schema": "public"
+            },
+            "object_relationships": [
+              {
+                "name": "tipo_preguntum",
+                "using": {
+                  "foreign_key_constraint_on": "tipo_pregunta"
+                }
+              }
+            ],
+            "array_relationships": [
+              {
+                "name": "opcion_pregunta",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "pregunta_id",
+                    "table": {
+                      "name": "opcion_pregunta",
+                      "schema": "public"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "respuesta",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "pregunta_id",
+                    "table": {
+                      "name": "respuesta",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "respuesta",
+              "schema": "public"
+            },
+            "object_relationships": [
+              {
+                "name": "cuestionario",
+                "using": {
+                  "foreign_key_constraint_on": "cuestionario_id"
+                }
+              },
+              {
+                "name": "estudiante",
+                "using": {
+                  "foreign_key_constraint_on": "estudiante_evaluado_id"
+                }
+              },
+              {
+                "name": "estudianteByEstudianteId",
+                "using": {
+                  "foreign_key_constraint_on": "estudiante_id"
+                }
+              },
+              {
+                "name": "preguntum",
+                "using": {
+                  "foreign_key_constraint_on": "pregunta_id"
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "tipo_pregunta",
+              "schema": "public"
+            },
+            "is_enum": true,
+            "array_relationships": [
+              {
+                "name": "pregunta",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "tipo_pregunta",
+                    "table": {
+                      "name": "pregunta",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "table": {
+              "name": "usuario",
+              "schema": "public"
+            },
+            "array_relationships": [
+              {
+                "name": "clases",
+                "using": {
+                  "foreign_key_constraint_on": {
+                    "column": "usuario_id",
+                    "table": {
+                      "name": "clase",
+                      "schema": "public"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "configuration": {
+          "connection_info": {
+            "database_url": "postgres://postgres:postgrespassword@postgres:5431/postgres",
+            "isolation_level": "read-committed",
+            "use_prepared_statements": false
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+es_obligatoria,numero_pregunta,texto,tipo_pregunta,created_at,id
+"true","1","'¿Cómo es trabajar con esta persona?'","'AFINIDAD_ESTUDIANTE'","'2025-07-02T17:14:36.366747+00:00'","'da9afe1d-b9a8-42d5-8adb-29c119f44818'"
+"true","2","'¿Por qué te gusta trabajar con esta persona?'","'MULTIPLE_SELECCION'","'2025-07-02T17:16:07.622004+00:00'","'ec38bd47-39ab-4248-aca4-387861e76684'"
+"true","3","'¿Qué hace que a veces funcione y otras no?'","'MULTIPLE_SELECCION'","'2025-07-02T17:16:34.49602+00:00'","'04391791-d569-49b9-a73d-56cb21522f8a'"
+"true","4","'¿Qué te dificulta al trabajar con esta persona?'","'MULTIPLE_SELECCION'","'2025-07-02T17:19:16.279179+00:00'","'70bd295c-3a83-4c4e-be9b-41cb741ad4bb'"
+"true","5","'¿Quiénes ayudan a que el grupo funcione bien? (Pensá en personas que proponen ideas, organizan el trabajo, resuelven problemas o ayudan a otros/as a seguir.) '","'MULTIPLE_SELECCION'","'2025-07-02T17:33:59.487107+00:00'","'833ac90d-3590-45a8-8b78-add25b87cb94'"
+"true","6","'¿Quiénes te hacen sentir parte del grupo cuando trabajan juntos/as? (Pensá en compañeros/as que escuchan tus ideas, te respetan, te apoyan o te integran.)'","'MULTIPLE_SELECCION'","'2025-07-02T17:36:10.00734+00:00'","'f54c453c-250b-45fa-8b52-67a85450cf82'"
+"true","7","'¿Quiénes suelen tomar el rol de líder cuando trabajan en grupo? (Puede ser porque organizan, deciden, motivan o guían al grupo.)'","'MULTIPLE_SELECCION'","'2025-07-02T17:36:43.893086+00:00'","'a74f9118-d769-4f5c-bb6a-3363c88fbf48'"
+"true","8","'¿Quiénes suelen quedarse sin grupo o no ser elegidos/as cuando hay que formar equipos? (Pensá en quienes a veces quedan solos/as o les cuesta integrarse.)'","'MULTIPLE_SELECCION'","'2025-07-02T17:37:06.810173+00:00'","'60726c3f-dc2c-4ef8-b1fb-da678d9a0af8'"
+"true","9","'¿Quiénes creés que necesitan más apoyo para poder trabajar mejor en grupo? (Puede ser por timidez, distracción, problemas con otros/as, u otra razón.)'","'MULTIPLE_SELECCION'","'2025-07-02T17:37:29.069806+00:00'","'872b5879-2c6b-4126-bb32-069ed19fe6ac'"
+"true","10","'¿Con quién te cuesta más trabajar en grupo? (Pensá en personas que no escuchan, no cumplen o generan conflictos.)'","'MULTIPLE_SELECCION'","'2025-07-02T17:37:50.665275+00:00'","'768232fd-5126-4f24-bcc0-889ac9a4db2e'"
